@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoTyper", "AutoTyper\AutoTyper.csproj", "{4D470C64-789B-42CF-83C9-C6936068FD53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoTyper.Tests", "AutoTyper.Tests\AutoTyper.Tests.csproj", "{B8CFF400-1C92-41D6-9B42-A6A5095394E4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D470C64-789B-42CF-83C9-C6936068FD53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D470C64-789B-42CF-83C9-C6936068FD53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D470C64-789B-42CF-83C9-C6936068FD53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D470C64-789B-42CF-83C9-C6936068FD53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8CFF400-1C92-41D6-9B42-A6A5095394E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8CFF400-1C92-41D6-9B42-A6A5095394E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8CFF400-1C92-41D6-9B42-A6A5095394E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8CFF400-1C92-41D6-9B42-A6A5095394E4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

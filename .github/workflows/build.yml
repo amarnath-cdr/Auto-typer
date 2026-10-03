@@ -1,0 +1,30 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build & Test AutoTyper
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore AutoTyper.sln
+
+    - name: Build solution
+      run: dotnet build AutoTyper.sln --configuration Release --no-restore
+
+    - name: Run unit tests
+      run: dotnet test AutoTyper.sln --configuration Release --no-build --verbosity normal

@@ -1,0 +1,342 @@
+<Window x:Class="AutoTyper.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:AutoTyper.Models"
+        mc:Ignorable="d"
+        Title="AutoTyper"
+        Height="620" Width="880"
+        MinHeight="480" MinWidth="680"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /> <!-- Top Header -->
+            <RowDefinition Height="Auto" /> <!-- Search Bar -->
+            <RowDefinition Height="*" />    <!-- Profile List -->
+            <RowDefinition Height="Auto" /> <!-- Action Toolbar -->
+            <RowDefinition Height="Auto" /> <!-- Bottom Status Bar -->
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="AutoTyper" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <Border Background="{DynamicResource BadgeBackgroundBrush}" CornerRadius="10" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="v0.1.0 Foundation" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BadgeForegroundBrush}" />
+                </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="⚙ Settings"
+                        Command="{Binding OpenSettingsCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Search Bar -->
+        <Border Grid.Row="1" Margin="0,0,0,16" Style="{StaticResource CardStyle}" Padding="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="🔍" FontSize="13" Margin="12,8,6,8" VerticalAlignment="Center" Foreground="{DynamicResource TextTertiaryBrush}" />
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         FontSize="14"
+                         Padding="4,8"
+                         VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextPrimaryBrush}">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="TextBox">
+                                        <Grid>
+                                            <TextBlock Text="Search profiles by name, shortcut, or text..."
+                                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                                       FontSize="13"
+                                                       VerticalAlignment="Center"
+                                                       Margin="6,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+
+                <Button Grid.Column="2"
+                        Content="✕"
+                        Command="{Binding ClearSearchCommand}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Foreground="{DynamicResource TextTertiaryBrush}"
+                        FontSize="13"
+                        Padding="10,6"
+                        Cursor="Hand"
+                        ToolTip="Clear search" />
+            </Grid>
+        </Border>
+
+        <!-- Profile Table (DataGrid) -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="0" Margin="0,0,0,16">
+            <DataGrid ItemsSource="{Binding Profiles}"
+                      SelectedItem="{Binding SelectedProfile}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="{DynamicResource ControlBorderBrush}"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      RowHeight="44"
+                      FontSize="13"
+                      Foreground="{DynamicResource TextPrimaryBrush}"
+                      RowHeaderWidth="0">
+
+                <DataGrid.Resources>
+                    <!-- Column Header Style -->
+                    <Style TargetType="{x:Type DataGridColumnHeader}">
+                        <Setter Property="Background" Value="{DynamicResource SurfaceElevatedBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="FontSize" Value="12" />
+                        <Setter Property="Padding" Value="14,10" />
+                        <Setter Property="BorderThickness" Value="0,0,0,1" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+                    </Style>
+
+                    <!-- Row Style -->
+                    <Style TargetType="{x:Type DataGridRow}">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Padding" Value="14,0" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.Resources>
+
+                <DataGrid.Columns>
+                    <!-- Shortcut Column -->
+                    <DataGridTemplateColumn Header="Shortcut" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type models:AutoTypeProfile}">
+                                <Border Style="{StaticResource ShortcutBadgeStyle}">
+                                    <TextBlock Text="{Binding Shortcut}"
+                                               FontWeight="SemiBold"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource BadgeForegroundBrush}" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Name & Comment Column -->
+                    <DataGridTemplateColumn Header="Name" Width="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type models:AutoTypeProfile}">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding Comment}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Text Preview Column -->
+                    <DataGridTemplateColumn Header="Text Preview" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type models:AutoTypeProfile}">
+                                <TextBlock Text="{Binding TextPreview}"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Delay Column -->
+                    <DataGridTemplateColumn Header="Delay" Width="80">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type models:AutoTypeProfile}">
+                                <TextBlock Text="{Binding FormattedDelay}"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Status Column -->
+                    <DataGridTemplateColumn Header="Status" Width="110">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type models:AutoTypeProfile}">
+                                <Button Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        Cursor="Hand">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <ContentPresenter />
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </Button.Style>
+                                    <Grid>
+                                        <!-- Enabled Badge -->
+                                        <Border>
+                                            <Border.Style>
+                                                <Style TargetType="Border" BasedOn="{StaticResource StatusEnabledBadgeStyle}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsEnabled}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="● Enabled" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SuccessForegroundBrush}" />
+                                        </Border>
+
+                                        <!-- Disabled Badge -->
+                                        <Border>
+                                            <Border.Style>
+                                                <Style TargetType="Border" BasedOn="{StaticResource StatusDisabledBadgeStyle}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="○ Disabled" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource MutedBadgeForegroundBrush}" />
+                                        </Border>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Buttons Toolbar -->
+        <Grid Grid.Row="3" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="+ Add Profile"
+                        Command="{Binding AddCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Margin="0,0,8,0" />
+
+                <Button Content="Edit"
+                        Command="{Binding EditCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="0,0,8,0" />
+
+                <Button Content="Duplicate"
+                        Command="{Binding DuplicateCommand}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="0,0,8,0" />
+
+                <Button Content="Delete"
+                        Command="{Binding DeleteCommand}"
+                        Style="{StaticResource DangerButtonStyle}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Bottom Status Bar -->
+        <Border Grid.Row="4"
+                Style="{StaticResource CardStyle}"
+                Padding="12,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Status Message -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Status: " FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+
+                <!-- Total Count -->
+                <TextBlock Grid.Column="1"
+                           Margin="16,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondaryBrush}">
+                    <Run Text="{Binding EnabledProfilesCount, Mode=OneWay}" />
+                    <Run Text="of" />
+                    <Run Text="{Binding TotalProfilesCount, Mode=OneWay}" />
+                    <Run Text="active" />
+                </TextBlock>
+
+                <!-- AutoTyper Master Toggle -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="AutoTyper: " FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    <CheckBox IsChecked="{Binding IsMasterEnabled}"
+                              Content="{Binding MasterEnabledText}"
+                              FontWeight="SemiBold"
+                              Foreground="{DynamicResource TextPrimaryBrush}"
+                              VerticalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
