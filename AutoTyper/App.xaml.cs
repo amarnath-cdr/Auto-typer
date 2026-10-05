@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Interop;
 using AutoTyper.Models;
@@ -39,11 +40,16 @@ public partial class App : Application
             DataContext = _mainViewModel
         };
 
-        mainWindow.Loaded += (s, ev) =>
+        MainWindow = mainWindow;
+
+        mainWindow.SourceInitialized += (s, ev) =>
         {
             var handle = new WindowInteropHelper(mainWindow).Handle;
-            _hotkeyService.Initialize(handle);
-            _mainViewModel.RegisterGlobalHotkeys();
+            if (handle != IntPtr.Zero)
+            {
+                _hotkeyService.Initialize(handle);
+                _mainViewModel.RegisterGlobalHotkeys();
+            }
         };
 
         mainWindow.Closed += (s, ev) =>

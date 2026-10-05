@@ -179,7 +179,6 @@ public class MainViewModel : ViewModelBase, IDisposable
 
         ApplyFilter();
         UpdateCounts();
-        RegisterGlobalHotkeys();
     }
 
     public void RegisterGlobalHotkeys()

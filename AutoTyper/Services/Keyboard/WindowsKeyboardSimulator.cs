@@ -31,6 +31,17 @@ public class WindowsKeyboardSimulator : IKeyboardSimulator
     // --- Win32 Structures ---
 
     [StructLayout(LayoutKind.Sequential)]
+    private struct MOUSEINPUT
+    {
+        public int dx;
+        public int dy;
+        public uint mouseData;
+        public uint dwFlags;
+        public uint time;
+        public IntPtr dwExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     private struct KEYBDINPUT
     {
         public ushort wVk;
@@ -41,17 +52,31 @@ public class WindowsKeyboardSimulator : IKeyboardSimulator
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct INPUT
+    private struct HARDWAREINPUT
     {
-        public uint type;
-        public INPUTUNION u;
+        public uint uMsg;
+        public ushort wParamL;
+        public ushort wParamH;
     }
 
     [StructLayout(LayoutKind.Explicit)]
     private struct INPUTUNION
     {
         [FieldOffset(0)]
+        public MOUSEINPUT mi;
+
+        [FieldOffset(0)]
         public KEYBDINPUT ki;
+
+        [FieldOffset(0)]
+        public HARDWAREINPUT hi;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct INPUT
+    {
+        public uint type;
+        public INPUTUNION u;
     }
 
     // --- Win32 P/Invoke ---
@@ -69,7 +94,7 @@ public class WindowsKeyboardSimulator : IKeyboardSimulator
             return;
         }
 
-        // For tab, send the Unicode character directly
+        // Send Unicode character key-down and key-up
         var inputs = new INPUT[2];
 
         // Key down
@@ -154,7 +179,13 @@ public class WindowsKeyboardSimulator : IKeyboardSimulator
             }
         };
 
-        SendInput(2, inputs, Marshal.SizeOf<INPUT>());
+        var result = SendInput(2, inputs, Marshal.SizeOf<INPUT>());
+        if (result == 0)
+        {
+            var error = Marshal.GetLastWin32Error();
+            throw new InvalidOperationException(
+                $"SendInput failed for virtual key 0x{virtualKeyCode:X2}. Win32 error: {error}");
+        }
     }
 
     /// <inheritdoc />

@@ -46,7 +46,7 @@ public class WindowsHotkeyService : IHotkeyService
         ArgumentNullException.ThrowIfNull(hotkey);
 
         if (_windowHandle == IntPtr.Zero)
-            throw new InvalidOperationException("HotkeyService has not been initialized with a window handle.");
+            return false;
 
         if (_registeredHotkeys.ContainsKey(id))
         {

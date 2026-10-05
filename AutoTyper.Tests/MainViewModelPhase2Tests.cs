@@ -153,6 +153,7 @@ public class MainViewModelPhase2Tests
         };
 
         var vm = new MainViewModel(storage, settings, theme, typingEngine, hotkeyService);
+        vm.RegisterGlobalHotkeys();
 
         // Verify that F7 was registered
         Assert.NotEmpty(hotkeyService.Registered);
@@ -189,6 +190,7 @@ public class MainViewModelPhase2Tests
         var hotkeyService = new MockHotkeyService();
 
         var vm = new MainViewModel(storage, settings, theme, typingEngine, hotkeyService);
+        vm.RegisterGlobalHotkeys();
         Assert.NotEmpty(hotkeyService.Registered);
 
         vm.IsMasterEnabled = false;
