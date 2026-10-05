@@ -17,6 +17,12 @@ public class AutoTypeProfile
 
     public int TypingDelayMs { get; set; } = 20;
 
+    public bool UseJitter { get; set; } = false;
+
+    public int MinDelayMs { get; set; } = 10;
+
+    public int MaxDelayMs { get; set; } = 50;
+
     public TypingMode TypingMode { get; set; } = TypingMode.Simulated;
 
     public CapitalizationMode Capitalization { get; set; } = CapitalizationMode.Original;
@@ -43,7 +49,7 @@ public class AutoTypeProfile
     }
 
     [JsonIgnore]
-    public string FormattedDelay => $"{TypingDelayMs}ms";
+    public string FormattedDelay => UseJitter ? $"{MinDelayMs}-{MaxDelayMs}ms" : $"{TypingDelayMs}ms";
 
     public AutoTypeProfile Clone()
     {
@@ -55,6 +61,9 @@ public class AutoTypeProfile
             Text = Text,
             Comment = Comment,
             TypingDelayMs = TypingDelayMs,
+            UseJitter = UseJitter,
+            MinDelayMs = MinDelayMs,
+            MaxDelayMs = MaxDelayMs,
             TypingMode = TypingMode,
             Capitalization = Capitalization,
             RepeatCount = RepeatCount,
@@ -72,6 +81,9 @@ public class AutoTypeProfile
         Text = other.Text;
         Comment = other.Comment;
         TypingDelayMs = other.TypingDelayMs;
+        UseJitter = other.UseJitter;
+        MinDelayMs = other.MinDelayMs;
+        MaxDelayMs = other.MaxDelayMs;
         TypingMode = other.TypingMode;
         Capitalization = other.Capitalization;
         RepeatCount = other.RepeatCount;

@@ -13,6 +13,9 @@ public class ProfileEditorViewModel : ViewModelBase
     private string _text = string.Empty;
     private string _comment = string.Empty;
     private int _typingDelayMs = 20;
+    private bool _useJitter;
+    private int _minDelayMs = 10;
+    private int _maxDelayMs = 50;
     private TypingMode _typingMode = TypingMode.Simulated;
     private CapitalizationMode _capitalization = CapitalizationMode.Original;
     private int _repeatCount = 1;
@@ -31,6 +34,9 @@ public class ProfileEditorViewModel : ViewModelBase
             _text = existingProfile.Text;
             _comment = existingProfile.Comment;
             _typingDelayMs = existingProfile.TypingDelayMs;
+            _useJitter = existingProfile.UseJitter;
+            _minDelayMs = existingProfile.MinDelayMs;
+            _maxDelayMs = existingProfile.MaxDelayMs;
             _typingMode = existingProfile.TypingMode;
             _capitalization = existingProfile.Capitalization;
             _repeatCount = existingProfile.RepeatCount;
@@ -66,7 +72,13 @@ public class ProfileEditorViewModel : ViewModelBase
     public string Shortcut
     {
         get => _shortcut;
-        set => SetProperty(ref _shortcut, value);
+        set
+        {
+            if (SetProperty(ref _shortcut, value))
+            {
+                Validate();
+            }
+        }
     }
 
     public string Text
@@ -93,6 +105,42 @@ public class ProfileEditorViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _typingDelayMs, value))
+            {
+                Validate();
+            }
+        }
+    }
+
+    public bool UseJitter
+    {
+        get => _useJitter;
+        set
+        {
+            if (SetProperty(ref _useJitter, value))
+            {
+                Validate();
+            }
+        }
+    }
+
+    public int MinDelayMs
+    {
+        get => _minDelayMs;
+        set
+        {
+            if (SetProperty(ref _minDelayMs, value))
+            {
+                Validate();
+            }
+        }
+    }
+
+    public int MaxDelayMs
+    {
+        get => _maxDelayMs;
+        set
+        {
+            if (SetProperty(ref _maxDelayMs, value))
             {
                 Validate();
             }
@@ -183,6 +231,9 @@ public class ProfileEditorViewModel : ViewModelBase
             Text = Text ?? string.Empty,
             Comment = Comment?.Trim() ?? string.Empty,
             TypingDelayMs = TypingDelayMs,
+            UseJitter = UseJitter,
+            MinDelayMs = MinDelayMs,
+            MaxDelayMs = MaxDelayMs,
             TypingMode = TypingMode,
             Capitalization = Capitalization,
             RepeatCount = Math.Max(1, RepeatCount),

@@ -1,6 +1,10 @@
 using System.Windows;
+using System.Windows.Interop;
 using AutoTyper.Models;
 using AutoTyper.Services;
+using AutoTyper.Services.Engine;
+using AutoTyper.Services.Hotkeys;
+using AutoTyper.Services.Keyboard;
 using AutoTyper.ViewModels;
 using AutoTyper.Views;
 
@@ -8,6 +12,9 @@ namespace AutoTyper;
 
 public partial class App : Application
 {
+    private MainViewModel? _mainViewModel;
+    private WindowsHotkeyService? _hotkeyService;
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -15,15 +22,36 @@ public partial class App : Application
         var profileStorage = new ProfileStorageService();
         var settingsStorage = new SettingsStorageService();
         var themeService = new ThemeService();
+        var keyboardSimulator = new WindowsKeyboardSimulator();
+        var delayProvider = new TaskDelayProvider();
+        var typingEngine = new TypingEngine(keyboardSimulator, delayProvider);
+        _hotkeyService = new WindowsHotkeyService();
 
-        var mainVm = new MainViewModel(profileStorage, settingsStorage, themeService);
+        _mainViewModel = new MainViewModel(
+            profileStorage,
+            settingsStorage,
+            themeService,
+            typingEngine,
+            _hotkeyService);
 
         var mainWindow = new MainWindow
         {
-            DataContext = mainVm
+            DataContext = _mainViewModel
         };
 
-        mainVm.ShowProfileEditorDialog = (existingProfile) =>
+        mainWindow.Loaded += (s, ev) =>
+        {
+            var handle = new WindowInteropHelper(mainWindow).Handle;
+            _hotkeyService.Initialize(handle);
+            _mainViewModel.RegisterGlobalHotkeys();
+        };
+
+        mainWindow.Closed += (s, ev) =>
+        {
+            _mainViewModel.Dispose();
+        };
+
+        _mainViewModel.ShowProfileEditorDialog = (existingProfile) =>
         {
             var editorVm = new ProfileEditorViewModel(existingProfile);
             var editorDialog = new ProfileEditorDialog
@@ -43,7 +71,7 @@ public partial class App : Application
             return (false, null);
         };
 
-        mainVm.ShowSettingsDialog = () =>
+        _mainViewModel.ShowSettingsDialog = () =>
         {
             var settingsVm = new SettingsViewModel(settingsStorage, themeService);
             var settingsDialog = new SettingsDialog
@@ -56,12 +84,18 @@ public partial class App : Application
             settingsDialog.ShowDialog();
         };
 
-        mainVm.ConfirmAction = (message, title) =>
+        _mainViewModel.ConfirmAction = (message, title) =>
         {
             var res = MessageBox.Show(mainWindow, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
             return res == MessageBoxResult.Yes;
         };
 
         mainWindow.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _mainViewModel?.Dispose();
+        base.OnExit(e);
     }
 }

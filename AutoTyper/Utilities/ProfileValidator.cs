@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AutoTyper.Models;
+using AutoTyper.Services.Hotkeys;
 
 namespace AutoTyper.Utilities;
 
@@ -36,10 +37,32 @@ public static class ProfileValidator
         {
             result.AddError("Shortcut key is required.");
         }
+        else if (!HotkeyModel.TryParse(profile.Shortcut, out _))
+        {
+            result.AddError($"Shortcut '{profile.Shortcut}' is not a valid key combination.");
+        }
 
         if (profile.TypingDelayMs < 0 || profile.TypingDelayMs > 60000)
         {
             result.AddError("Typing delay must be between 0ms and 60,000ms.");
+        }
+
+        if (profile.UseJitter)
+        {
+            if (profile.MinDelayMs < 0 || profile.MinDelayMs > 60000)
+            {
+                result.AddError("Minimum jitter delay must be between 0ms and 60,000ms.");
+            }
+
+            if (profile.MaxDelayMs < 0 || profile.MaxDelayMs > 60000)
+            {
+                result.AddError("Maximum jitter delay must be between 0ms and 60,000ms.");
+            }
+
+            if (profile.MinDelayMs > profile.MaxDelayMs)
+            {
+                result.AddError("Minimum jitter delay cannot be greater than maximum jitter delay.");
+            }
         }
 
         if (profile.RepeatCount < 1 || profile.RepeatCount > 100000)

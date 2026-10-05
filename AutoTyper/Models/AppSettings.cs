@@ -1,3 +1,5 @@
+using System;
+
 namespace AutoTyper.Models;
 
 public class AppSettings
@@ -10,6 +12,8 @@ public class AppSettings
 
     public int DefaultDelayMs { get; set; } = 20;
 
+    public string GlobalStopHotkey { get; set; } = "Escape";
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -17,7 +21,8 @@ public class AppSettings
             Theme = Theme,
             AutoTyperMasterEnabled = AutoTyperMasterEnabled,
             ConfirmOnDelete = ConfirmOnDelete,
-            DefaultDelayMs = DefaultDelayMs
+            DefaultDelayMs = DefaultDelayMs,
+            GlobalStopHotkey = GlobalStopHotkey
         };
     }
 
@@ -28,5 +33,6 @@ public class AppSettings
         AutoTyperMasterEnabled = other.AutoTyperMasterEnabled;
         ConfirmOnDelete = other.ConfirmOnDelete;
         DefaultDelayMs = other.DefaultDelayMs;
+        GlobalStopHotkey = other.GlobalStopHotkey;
     }
 }

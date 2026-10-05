@@ -7,7 +7,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="{Binding Title}"
-        Height="680" Width="540"
+        Height="730" Width="540"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -101,10 +101,40 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="Typing Delay (ms)" Style="{StaticResource FormLabelStyle}" />
+                        <TextBlock Text="Base Typing Delay (ms)" Style="{StaticResource FormLabelStyle}" />
                         <TextBox Text="{Binding TypingDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
                     </StackPanel>
                 </Grid>
+
+                <!-- Random Jitter Option -->
+                <Border Style="{StaticResource CardStyle}" Padding="12" Margin="0,0,0,12">
+                    <StackPanel>
+                        <CheckBox Content="Enable Random Jitter / Variable Delay"
+                                  IsChecked="{Binding UseJitter}"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Margin="0,0,0,8" />
+
+                        <Grid Visibility="{Binding UseJitter, Converter={StaticResource BoolToVis}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Min Delay (ms)" Style="{StaticResource FormLabelStyle}" />
+                                <TextBox Text="{Binding MinDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Max Delay (ms)" Style="{StaticResource FormLabelStyle}" />
+                                <TextBox Text="{Binding MaxDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
                 <!-- Capitalization & Repeat Row -->
                 <Grid Margin="0,0,0,12">

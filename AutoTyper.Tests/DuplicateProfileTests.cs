@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoTyper.Models;
 using AutoTyper.Services;
+using AutoTyper.Services.Engine;
+using AutoTyper.Services.Hotkeys;
+using AutoTyper.Services.Keyboard;
 using AutoTyper.ViewModels;
 using Xunit;
 
@@ -43,6 +47,29 @@ public class DuplicateProfileTests
         public void SaveSettings(AppSettings settings) => Settings = settings;
     }
 
+    private class MockKeyboardSimulator : IKeyboardSimulator
+    {
+        public void SendCharacter(char character) { }
+        public void SendKeyPress(ushort virtualKeyCode) { }
+        public void ReleaseAllModifiers() { }
+    }
+
+    private class MockDelayProvider : IDelayProvider
+    {
+        public Task DelayAsync(int milliseconds, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private class MockHotkeyService : IHotkeyService
+    {
+        public event EventHandler<int>? HotkeyPressed { add { } remove { } }
+        public bool Register(int id, HotkeyModel hotkey) => true;
+        public bool Unregister(int id) => true;
+        public void UnregisterAll() { }
+        public bool IsRegistered(int id) => false;
+        public bool HasConflict(HotkeyModel hotkey, int? excludeId = null) => false;
+        public void Dispose() { }
+    }
+
     [Fact]
     public void Clone_GeneratesNewIdAndAppendsCopySuffix()
     {
@@ -54,6 +81,9 @@ public class DuplicateProfileTests
             Text = "Kind regards",
             Comment = "Company signature",
             TypingDelayMs = 35,
+            UseJitter = true,
+            MinDelayMs = 15,
+            MaxDelayMs = 60,
             TypingMode = TypingMode.Clipboard,
             Capitalization = CapitalizationMode.Original,
             RepeatCount = 2,
@@ -68,6 +98,9 @@ public class DuplicateProfileTests
         Assert.Equal(original.Text, clone.Text);
         Assert.Equal(original.Comment, clone.Comment);
         Assert.Equal(original.TypingDelayMs, clone.TypingDelayMs);
+        Assert.True(clone.UseJitter);
+        Assert.Equal(15, clone.MinDelayMs);
+        Assert.Equal(60, clone.MaxDelayMs);
         Assert.Equal(original.TypingMode, clone.TypingMode);
         Assert.Equal(original.Capitalization, clone.Capitalization);
         Assert.Equal(original.RepeatCount, clone.RepeatCount);
@@ -87,7 +120,9 @@ public class DuplicateProfileTests
         var storage = new MockProfileStorage { Profiles = new List<AutoTypeProfile> { original } };
         var settings = new MockSettingsStorage();
         var theme = new MockThemeService();
-        var vm = new MainViewModel(storage, settings, theme);
+        var typingEngine = new TypingEngine(new MockKeyboardSimulator(), new MockDelayProvider());
+        var hotkeyService = new MockHotkeyService();
+        var vm = new MainViewModel(storage, settings, theme, typingEngine, hotkeyService);
 
         vm.SelectedProfile = vm.Profiles[0];
         Assert.True(vm.DuplicateCommand.CanExecute(null));

@@ -7,7 +7,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="AutoTyper Settings"
-        Height="480" Width="480"
+        Height="540" Width="480"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -50,7 +50,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- General Options -->
+            <!-- Hotkeys & General Options -->
             <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
                 <StackPanel>
                     <CheckBox Content="Master AutoTyper functionality enabled"
@@ -65,10 +65,19 @@
                               Foreground="{DynamicResource TextPrimaryBrush}"
                               Margin="0,0,0,8" />
 
+                    <Grid Margin="0,4,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="110" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Global Stop Hotkey:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBox Grid.Column="1" Text="{Binding GlobalStopHotkey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
+                    </Grid>
+
                     <Grid Margin="0,4,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="110" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Default delay for new profiles (ms):" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <TextBox Grid.Column="1" Text="{Binding DefaultDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />

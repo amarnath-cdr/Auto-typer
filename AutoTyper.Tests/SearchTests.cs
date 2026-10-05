@@ -1,7 +1,11 @@
 using System.Collections.Generic;
-using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoTyper.Models;
 using AutoTyper.Services;
+using AutoTyper.Services.Engine;
+using AutoTyper.Services.Hotkeys;
+using AutoTyper.Services.Keyboard;
 using AutoTyper.ViewModels;
 using Xunit;
 
@@ -43,12 +47,46 @@ public class SearchTests
         public void SaveSettings(AppSettings settings) => Settings = settings;
     }
 
+    private class MockKeyboardSimulator : IKeyboardSimulator
+    {
+        public List<char> TypedCharacters { get; } = new();
+        public void SendCharacter(char character) => TypedCharacters.Add(character);
+        public void SendKeyPress(ushort virtualKeyCode) { }
+        public void ReleaseAllModifiers() { }
+    }
+
+    private class MockDelayProvider : IDelayProvider
+    {
+        public Task DelayAsync(int milliseconds, CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    private class MockHotkeyService : IHotkeyService
+    {
+        public event EventHandler<int>? HotkeyPressed;
+        private readonly HashSet<int> _registered = new();
+
+        public bool Register(int id, HotkeyModel hotkey)
+        {
+            _registered.Add(id);
+            return true;
+        }
+
+        public bool Unregister(int id) => _registered.Remove(id);
+        public void UnregisterAll() => _registered.Clear();
+        public bool IsRegistered(int id) => _registered.Contains(id);
+        public bool HasConflict(HotkeyModel hotkey, int? excludeId = null) => false;
+        public void Dispose() => UnregisterAll();
+        public void SimulateKeyPress(int id) => HotkeyPressed?.Invoke(this, id);
+    }
+
     private static MainViewModel CreateViewModel(List<AutoTypeProfile> profiles)
     {
         var profileStorage = new MockProfileStorage { Profiles = profiles };
         var settingsStorage = new MockSettingsStorage();
         var themeService = new MockThemeService();
-        return new MainViewModel(profileStorage, settingsStorage, themeService);
+        var typingEngine = new TypingEngine(new MockKeyboardSimulator(), new MockDelayProvider());
+        var hotkeyService = new MockHotkeyService();
+        return new MainViewModel(profileStorage, settingsStorage, themeService, typingEngine, hotkeyService);
     }
 
     [Fact]

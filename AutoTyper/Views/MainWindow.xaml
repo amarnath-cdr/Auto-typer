@@ -6,11 +6,15 @@
         xmlns:models="clr-namespace:AutoTyper.Models"
         mc:Ignorable="d"
         Title="AutoTyper"
-        Height="620" Width="880"
-        MinHeight="480" MinWidth="680"
+        Height="640" Width="920"
+        MinHeight="480" MinWidth="720"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}"
         FontFamily="Segoe UI Variable, Segoe UI, sans-serif">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Window.Resources>
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
@@ -31,7 +35,7 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="AutoTyper" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                 <Border Background="{DynamicResource BadgeBackgroundBrush}" CornerRadius="10" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="v0.1.0 Foundation" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BadgeForegroundBrush}" />
+                    <TextBlock Text="v0.2.0 Keystroke Engine" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BadgeForegroundBrush}" />
                 </Border>
             </StackPanel>
 
@@ -167,7 +171,7 @@
 
                 <DataGrid.Columns>
                     <!-- Shortcut Column -->
-                    <DataGridTemplateColumn Header="Shortcut" Width="100">
+                    <DataGridTemplateColumn Header="Shortcut" Width="110">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="{x:Type models:AutoTypeProfile}">
                                 <Border Style="{StaticResource ShortcutBadgeStyle}">
@@ -205,7 +209,7 @@
                     </DataGridTemplateColumn>
 
                     <!-- Delay Column -->
-                    <DataGridTemplateColumn Header="Delay" Width="80">
+                    <DataGridTemplateColumn Header="Delay" Width="90">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="{x:Type models:AutoTypeProfile}">
                                 <TextBlock Text="{Binding FormattedDelay}"
@@ -277,7 +281,13 @@
 
         <!-- Buttons Toolbar -->
         <Grid Grid.Row="3" Margin="0,0,0,16">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Profile CRUD actions -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button Content="+ Add Profile"
                         Command="{Binding AddCommand}"
                         Style="{StaticResource PrimaryButtonStyle}"
@@ -297,6 +307,20 @@
                         Command="{Binding DeleteCommand}"
                         Style="{StaticResource DangerButtonStyle}" />
             </StackPanel>
+
+            <!-- Typing Simulation controls -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="▶ Start Typing"
+                        Command="{Binding StartTypingCommand}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Margin="0,0,8,0"
+                        ToolTip="Type the selected profile text character-by-character" />
+
+                <Button Content="⏹ Stop"
+                        Command="{Binding StopTypingCommand}"
+                        Style="{StaticResource DangerButtonStyle}"
+                        ToolTip="Stop the active typing simulation" />
+            </StackPanel>
         </Grid>
 
         <!-- Bottom Status Bar -->
@@ -310,10 +334,12 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Status Message -->
+                <!-- Status Message & Progress -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Status: " FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,12,0" />
+                    <TextBlock Text="{Binding TypingProgressText}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                               Visibility="{Binding IsTyping, Converter={StaticResource BoolToVis}}" />
                 </StackPanel>
 
                 <!-- Total Count -->

@@ -25,6 +25,9 @@ public class SerializationTests
             Text = "git push production main\r\n./deploy.sh",
             Comment = "Trigger deployment script",
             TypingDelayMs = 45,
+            UseJitter = true,
+            MinDelayMs = 20,
+            MaxDelayMs = 80,
             TypingMode = TypingMode.Clipboard,
             Capitalization = CapitalizationMode.Uppercase,
             RepeatCount = 3,
@@ -45,6 +48,9 @@ public class SerializationTests
         Assert.Equal(original.Text, deserialized.Text);
         Assert.Equal(original.Comment, deserialized.Comment);
         Assert.Equal(original.TypingDelayMs, deserialized.TypingDelayMs);
+        Assert.True(deserialized.UseJitter);
+        Assert.Equal(original.MinDelayMs, deserialized.MinDelayMs);
+        Assert.Equal(original.MaxDelayMs, deserialized.MaxDelayMs);
         Assert.Equal(original.TypingMode, deserialized.TypingMode);
         Assert.Equal(original.Capitalization, deserialized.Capitalization);
         Assert.Equal(original.RepeatCount, deserialized.RepeatCount);
@@ -62,7 +68,8 @@ public class SerializationTests
             Theme = AppTheme.Dark,
             AutoTyperMasterEnabled = false,
             ConfirmOnDelete = false,
-            DefaultDelayMs = 50
+            DefaultDelayMs = 50,
+            GlobalStopHotkey = "F10"
         };
 
         // Act
@@ -75,6 +82,7 @@ public class SerializationTests
         Assert.False(deserialized.AutoTyperMasterEnabled);
         Assert.False(deserialized.ConfirmOnDelete);
         Assert.Equal(50, deserialized.DefaultDelayMs);
+        Assert.Equal("F10", deserialized.GlobalStopHotkey);
     }
 
     [Theory]
@@ -88,9 +96,16 @@ public class SerializationTests
     }
 
     [Fact]
-    public void FormattedDelay_ReturnsDelayWithSuffix()
+    public void FormattedDelay_WithoutJitter_ReturnsDelayWithSuffix()
     {
-        var profile = new AutoTypeProfile { TypingDelayMs = 25 };
+        var profile = new AutoTypeProfile { TypingDelayMs = 25, UseJitter = false };
         Assert.Equal("25ms", profile.FormattedDelay);
+    }
+
+    [Fact]
+    public void FormattedDelay_WithJitter_ReturnsRangeWithSuffix()
+    {
+        var profile = new AutoTypeProfile { UseJitter = true, MinDelayMs = 15, MaxDelayMs = 45 };
+        Assert.Equal("15-45ms", profile.FormattedDelay);
     }
 }

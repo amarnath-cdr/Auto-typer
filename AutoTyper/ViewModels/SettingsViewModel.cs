@@ -17,6 +17,7 @@ public class SettingsViewModel : ViewModelBase
     private bool _autoTyperMasterEnabled;
     private bool _confirmOnDelete;
     private int _defaultDelayMs;
+    private string _globalStopHotkey = "Escape";
 
     public SettingsViewModel(ISettingsStorageService settingsStorage, IThemeService themeService)
     {
@@ -28,6 +29,7 @@ public class SettingsViewModel : ViewModelBase
         _autoTyperMasterEnabled = current.AutoTyperMasterEnabled;
         _confirmOnDelete = current.ConfirmOnDelete;
         _defaultDelayMs = current.DefaultDelayMs;
+        _globalStopHotkey = string.IsNullOrWhiteSpace(current.GlobalStopHotkey) ? "Escape" : current.GlobalStopHotkey;
 
         SaveCommand = new RelayCommand(Save);
         CancelCommand = new RelayCommand(Cancel);
@@ -68,6 +70,12 @@ public class SettingsViewModel : ViewModelBase
         set => SetProperty(ref _defaultDelayMs, value);
     }
 
+    public string GlobalStopHotkey
+    {
+        get => _globalStopHotkey;
+        set => SetProperty(ref _globalStopHotkey, value);
+    }
+
     public string ConfigFolderPath => PathConstants.DataDirectory;
 
     public ICommand SaveCommand { get; }
@@ -81,7 +89,8 @@ public class SettingsViewModel : ViewModelBase
             Theme = Theme,
             AutoTyperMasterEnabled = AutoTyperMasterEnabled,
             ConfirmOnDelete = ConfirmOnDelete,
-            DefaultDelayMs = DefaultDelayMs
+            DefaultDelayMs = DefaultDelayMs,
+            GlobalStopHotkey = GlobalStopHotkey
         };
 
         _settingsStorage.SaveSettings(settings);

@@ -11,34 +11,43 @@ A modern Windows desktop auto-typing application.
 
 ## Overview
 
-**AutoTyper** is an open-source Windows x64 desktop utility designed to manage automated text insertion profiles, shortcuts, and typing configurations. Built using **C#**, **.NET 8**, **WPF**, and the **MVVM (Model-View-ViewModel)** architectural pattern, AutoTyper emphasizes clean separation of concerns, robust JSON persistence, and a polished user interface.
+**AutoTyper** is an open-source Windows x64 desktop utility designed to manage and automate keystroke simulation, text insertion profiles, and hotkey configurations. Built using **C#**, **.NET 8**, **WPF**, and the **MVVM (Model-View-ViewModel)** architectural pattern, AutoTyper emphasizes clean separation of concerns, robust JSON persistence, layout-independent Unicode typing via `SendInput`, and global hotkey integration.
 
 > [!NOTE]
-> **Project Status: Phase 1 — Foundation Completed**  
-> This release provides profile data modeling, full CRUD profile management, live search filtering, atomic JSON configuration storage, light/dark/system theme switching, and comprehensive unit tests. Background keyboard hooks and keystroke simulation engines are scheduled for Phase 2.
+> **Project Status: Phase 2 — Keystroke Simulation & Global Hotkeys Completed**  
+> Character-by-character typing simulation, customizable constant and randomized jitter delays, global hotkeys with `RegisterHotKey`, async cancellation with `CancellationToken`, and modifier safety cleanup are fully implemented and covered by 72 unit tests.
 
 ---
 
 ## Features
 
-### Currently Implemented (Phase 1)
-- **Modern Desktop UI**: Clean card-based design with rounded controls, clear status indicators, and responsive typography (`Segoe UI Variable`).
+### Currently Implemented (Phase 1 & Phase 2)
+- **Character-by-Character Keystroke Simulation**:
+  - Layout-independent typing using Windows `SendInput` with `KEYEVENTF_UNICODE`.
+  - Non-blocking async execution using `Task.Delay` and `CancellationToken`.
+  - Stuck-modifier prevention with automatic `ReleaseAllModifiers()` cleanup on cancel or error.
+- **Timing & Random Jitter**:
+  - Configurable typing delay (ms).
+  - Variable random delay / human jitter within configurable minimum and maximum millisecond bounds.
+- **Global Hotkeys**:
+  - Global trigger hotkeys per profile (e.g. `F7`, `Ctrl+F8`, `Alt+Shift+T`).
+  - Global Stop Hotkey (default: `Escape`) to halt active typing instantly from any window.
+  - Conflict detection, validation, and lifecycle unregistration.
 - **Profile Management**:
-  - **Create Profiles**: Add auto-typing profiles with Name, Shortcut trigger, Multiline Text, Comment, Delay, Typing Mode, Capitalization rule, and Repeat Count.
-  - **Edit Profiles**: Modify any existing profile configuration via a dedicated editor dialog.
-  - **Duplicate Profiles**: One-click profile cloning with automatic naming and UUID generation.
-  - **Delete Profiles**: Remove profiles with optional confirmation safety prompts.
+  - **Create / Edit Profiles**: Name, Shortcut, Multiline Text, Comment, Delay, Jitter bounds, Mode, Capitalization, Repeat Count.
+  - **Duplicate Profiles**: One-click profile cloning with UUID generation.
+  - **Delete Profiles**: Remove profiles with optional confirmation safety prompt.
   - **Enable / Disable Toggle**: Fast individual profile activation without deletion.
 - **Instant Search & Filter**: Real-time filtering across profile names, shortcut keys, comments, and snippet text.
 - **Reliable Storage**:
   - Stored in `%APPDATA%\AutoTyper\` (`profiles.json` and `settings.json`).
-  - Thread-safe, atomic file writes with `.tmp` swapping to prevent file corruption.
+  - Thread-safe, atomic file writes with `.tmp` swapping.
   - Automatic fallback generation for missing or invalid configuration files.
 - **Theming System**:
   - Dynamic runtime switching between **Light**, **Dark**, and **System** themes.
-  - Automatic Windows 10/11 system dark mode detection via Windows personalization settings.
+  - Automatic Windows system dark mode detection via Windows personalization settings.
 - **Quality & Verification**:
-  - 35 automated xUnit tests validating serialization, storage, search queries, profile validation, and duplication.
+  - 72 automated xUnit tests validating typing sequences, delays, jitter, cancellation, hotkeys, serialization, storage, search, and validation.
   - GitHub Actions CI pipeline executing on every push and pull request.
 
 ---
@@ -47,7 +56,7 @@ A modern Windows desktop auto-typing application.
 
 *(Screenshots will be placed in the [`screenshots/`](screenshots/) directory)*
 
-| Main Window (Profile List & Search) | Add / Edit Profile Dialog |
+| Main Window (Profile List & Controls) | Add / Edit Profile Dialog |
 | :---: | :---: |
 | ![Main Window Preview](screenshots/main_window.png) | ![Profile Editor Preview](screenshots/profile_editor.png) |
 
@@ -83,11 +92,12 @@ dotnet publish AutoTyper/AutoTyper.csproj -c Release -r win-x64 --self-contained
 
 ## Usage
 
-1. **Launch AutoTyper**: Run the application from your start menu or command prompt. Default profiles (`Greeting`, `Email Signature`, `Code Snippet`) are loaded automatically on first launch.
-2. **Search Profiles**: Type in the top search bar to filter your library by name, shortcut (e.g. `F7`), or snippet content.
-3. **Add a Profile**: Click **+ Add Profile**, specify the shortcut and text to type, adjust the typing delay and capitalization mode, then click **Save Profile**.
-4. **Duplicate a Profile**: Select any profile in the list and click **Duplicate** to generate an independent copy.
-5. **Adjust Settings**: Click **⚙ Settings** to switch themes (Light / Dark / System), configure the default typing delay, or open the local AppData folder.
+1. **Launch AutoTyper**: Default profiles (`Greeting`, `Email Signature`, `Code Snippet`) are loaded automatically on first launch.
+2. **Start Typing via Hotkey**: Press the configured global shortcut (e.g. `F7`) to start typing the corresponding profile into any active application (such as Notepad or your code editor).
+3. **Start Typing via UI**: Select any profile in the list and click **▶ Start Typing**.
+4. **Stop Typing**: Press the global stop hotkey (`Escape`) or click **⏹ Stop** to halt typing immediately.
+5. **Configure Jitter**: Open the profile editor, check **Enable Random Jitter**, and set the min/max millisecond bounds.
+6. **Adjust Settings**: Click **⚙ Settings** to switch themes, customize the global stop hotkey, or change default profile timing.
 
 ---
 
@@ -125,28 +135,37 @@ Auto-typer/
 │   ├── AutoTyper.csproj            # WPF Application project file (.NET 8)
 │   ├── App.xaml / App.xaml.cs      # Application entry & composition root
 │   ├── Models/
-│   │   ├── AutoTypeProfile.cs      # Core profile model & cloning logic
-│   │   ├── AppSettings.cs          # Application preferences model
+│   │   ├── AutoTypeProfile.cs      # Core profile model & jitter properties
+│   │   ├── AppSettings.cs          # Application preferences & stop hotkey
 │   │   ├── TypingMode.cs           # Simulated vs Clipboard enum
 │   │   ├── CapitalizationMode.cs   # Text transform mode enum
 │   │   └── AppTheme.cs             # System / Light / Dark enum
 │   ├── ViewModels/
 │   │   ├── ViewModelBase.cs        # INotifyPropertyChanged base implementation
 │   │   ├── RelayCommand.cs         # ICommand implementation
-│   │   ├── MainViewModel.cs        # Primary dashboard logic & filtering
+│   │   ├── MainViewModel.cs        # Primary dashboard logic, typing state & hotkey dispatch
 │   │   ├── ProfileEditorViewModel.cs # Add/Edit modal dialog ViewModel
 │   │   └── SettingsViewModel.cs    # Application settings ViewModel
 │   ├── Views/
-│   │   ├── MainWindow.xaml         # Main dashboard view
-│   │   ├── ProfileEditorDialog.xaml# Modal profile editor dialog
+│   │   ├── MainWindow.xaml         # Main dashboard view with typing controls
+│   │   ├── ProfileEditorDialog.xaml# Modal profile editor dialog with jitter inputs
 │   │   └── SettingsDialog.xaml     # Modal application settings dialog
 │   ├── Services/
-│   │   ├── IProfileStorageService.cs
-│   │   ├── ProfileStorageService.cs# Thread-safe JSON persistence for profiles
-│   │   ├── ISettingsStorageService.cs
-│   │   ├── SettingsStorageService.cs # Thread-safe JSON persistence for settings
-│   │   ├── IThemeService.cs
-│   │   └── ThemeService.cs         # Runtime theme resource dictionary manager
+│   │   ├── Engine/
+│   │   │   ├── ITypingEngine.cs    # Typing engine abstraction
+│   │   │   ├── TypingEngine.cs     # Character-by-character async simulation
+│   │   │   ├── TypingState.cs      # Engine states (Ready, Typing, Stopped, Error, Completed)
+│   │   │   └── IDelayProvider.cs   # Testable delay abstraction
+│   │   ├── Keyboard/
+│   │   │   ├── IKeyboardSimulator.cs      # Keyboard simulation interface
+│   │   │   └── WindowsKeyboardSimulator.cs # Win32 SendInput implementation
+│   │   ├── Hotkeys/
+│   │   │   ├── IHotkeyService.cs          # Hotkey registration interface
+│   │   │   ├── HotkeyModel.cs             # Hotkey parser & representation
+│   │   │   └── WindowsHotkeyService.cs    # Win32 RegisterHotKey & HwndSource hook
+│   │   ├── IProfileStorageService.cs / ProfileStorageService.cs
+│   │   ├── ISettingsStorageService.cs / SettingsStorageService.cs
+│   │   └── IThemeService.cs / ThemeService.cs
 │   ├── Resources/
 │   │   ├── Themes/
 │   │   │   ├── LightTheme.xaml     # Light theme palette
@@ -157,6 +176,9 @@ Auto-typer/
 │       └── ProfileValidator.cs     # Input validation rules
 ├── AutoTyper.Tests/
 │   ├── AutoTyper.Tests.csproj      # xUnit test project (.NET 8)
+│   ├── TypingEngineTests.cs        # Keystroke simulation & timing tests
+│   ├── HotkeyServiceTests.cs       # Hotkey parsing & conflict tests
+│   ├── MainViewModelPhase2Tests.cs # ViewModel typing integration tests
 │   ├── SerializationTests.cs       # JSON roundtrip & formatting tests
 │   ├── StorageServiceTests.cs      # File persistence & recovery tests
 │   ├── SearchTests.cs              # Search filtering tests
@@ -185,13 +207,16 @@ The development of AutoTyper is structured into sequential phases:
   - Profile CRUD & Duplication
   - Real-time search filtering
   - Light, Dark, and System theme support
-  - Unit test suite (35 tests)
+  - Unit test suite
   - GitHub Actions CI workflow
-- [ ] **Phase 2 — Keystroke Simulation & Hook Engine** *(Planned)*
-  - Windows low-level global keyboard hooks (`SetWindowsHookEx`)
-  - `SendInput` simulation engine
-  - Clipboard typing mode with clipboard state restoration
-  - Configurable typing delay & human jitter
+- [x] **Phase 2 — Keystroke Simulation & Global Hotkeys**
+  - Win32 `SendInput` simulation engine (`KEYEVENTF_UNICODE`)
+  - Character-by-character async execution with `CancellationToken`
+  - Modifier safety cleanup on cancellation and errors
+  - Configurable typing delay and random jitter bounds
+  - Global hotkeys via Win32 `RegisterHotKey` / `HwndSource`
+  - Global Stop Hotkey (`Escape`)
+  - 72 automated unit tests covering all Phase 1 & 2 behaviors
 - [ ] **Phase 3 — Syntax & Key Parser** *(Planned)*
   - Special key token parser (`{ENTER}`, `{TAB}`, `{ESC}`, etc.)
   - Capitalization transform processor

@@ -88,6 +88,24 @@ public class ProfileValidationTests
     }
 
     [Theory]
+    [InlineData("InvalidKeyCombo")]
+    [InlineData("Ctrl+")]
+    public void Validate_InvalidShortcutFormat_ReturnsError(string shortcut)
+    {
+        var profile = new AutoTypeProfile
+        {
+            Name = "Valid Name",
+            Shortcut = shortcut,
+            Text = "Valid text"
+        };
+
+        var result = ProfileValidator.Validate(profile);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Contains("not a valid key combination"));
+    }
+
+    [Theory]
     [InlineData(-1)]
     [InlineData(60001)]
     public void Validate_InvalidTypingDelay_ReturnsError(int delay)
@@ -104,6 +122,46 @@ public class ProfileValidationTests
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Contains("Typing delay"));
+    }
+
+    [Fact]
+    public void Validate_JitterMinGreaterThanMax_ReturnsError()
+    {
+        var profile = new AutoTypeProfile
+        {
+            Name = "Valid Name",
+            Shortcut = "F7",
+            Text = "Valid text",
+            UseJitter = true,
+            MinDelayMs = 100,
+            MaxDelayMs = 50
+        };
+
+        var result = ProfileValidator.Validate(profile);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Contains("cannot be greater than"));
+    }
+
+    [Theory]
+    [InlineData(-1, 50)]
+    [InlineData(10, 60001)]
+    public void Validate_JitterOutOfRange_ReturnsError(int min, int max)
+    {
+        var profile = new AutoTypeProfile
+        {
+            Name = "Valid Name",
+            Shortcut = "F7",
+            Text = "Valid text",
+            UseJitter = true,
+            MinDelayMs = min,
+            MaxDelayMs = max
+        };
+
+        var result = ProfileValidator.Validate(profile);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Contains("jitter delay"));
     }
 
     [Theory]
