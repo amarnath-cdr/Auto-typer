@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Interop;
 using AutoTyper.Models;
 using AutoTyper.Services;
+using AutoTyper.Services.Clipboard;
 using AutoTyper.Services.Engine;
 using AutoTyper.Services.Hotkeys;
 using AutoTyper.Services.Keyboard;
@@ -25,7 +26,9 @@ public partial class App : Application
         var themeService = new ThemeService();
         var keyboardSimulator = new WindowsKeyboardSimulator();
         var delayProvider = new TaskDelayProvider();
-        var typingEngine = new TypingEngine(keyboardSimulator, delayProvider);
+        var typingParser = new TypingParser();
+        var clipboardService = new WindowsClipboardService();
+        var typingEngine = new TypingEngine(keyboardSimulator, delayProvider, typingParser, clipboardService);
         _hotkeyService = new WindowsHotkeyService();
 
         _mainViewModel = new MainViewModel(

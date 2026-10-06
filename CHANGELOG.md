@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-06
+
+### Added
+- **Special Key Token Parser**:
+  - `ITypingParser` abstraction and `TypingParser` engine for template tokenization.
+  - Case-insensitive special key tokens: `{ENTER}`, `{RETURN}`, `{TAB}`, `{BACKSPACE}`, `{BACK}`, `{SPACE}`, `{ESC}`, `{ESCAPE}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{DELETE}`, `{DEL}`, `{INSERT}`, `{INS}`, `{PAGEUP}`, `{PGUP}`, `{PAGEDOWN}`, `{PGDN}`, `{CAPSLOCK}`, `{NUMLOCK}`, `{SCROLLLOCK}`, `{PRINTSCREEN}`, `{PRTSC}`, `{PAUSE}`, `{BREAK}`.
+  - Function key tokens: `{F1}` through `{F12}`.
+  - Modifier combination tokens: `{CTRL+C}`, `{CTRL+V}`, `{CTRL+A}`, `{CTRL+Z}`, `{CTRL+S}`, `{SHIFT+TAB}`, `{ALT+TAB}`, `{WIN+D}`, `{CTRL+SHIFT+S}`, `{CTRL+ALT+DELETE}`.
+  - Literal brace escaping using `{{` for `{` and `}}` for `}` (e.g. `{{CTRL+C}}` outputs `{CTRL+C}`).
+  - Graceful fallback for non-matching braces (e.g. `{world}` treated as literal text).
+- **Advanced Typing & Execution Modes**:
+  - **Clipboard Typing Mode**: `IClipboardService` and `WindowsClipboardService` for instantaneous paste via `Ctrl+V` with automatic preservation and restoration of previous clipboard contents.
+  - **Start Delay**: Configurable `StartDelayMs` (0 to 60,000ms) with full cancellation support.
+  - **Repeat Count**: Repeat loop execution (`RepeatCount`, 1 to 1,000) with cancellation checks.
+  - **Capitalization Transforms**: `Uppercase`, `Lowercase`, and `SentenceCase` text transformation modes.
+- **Keyboard Simulator Extensions**:
+  - `SendKeyDown`, `SendKeyUp`, and `SendKeyCombination` added to `IKeyboardSimulator` and `WindowsKeyboardSimulator`.
+  - Guaranteed modifier cleanup on cancellation or error to prevent stuck keys.
+- **UI Enhancements**:
+  - `ProfileEditorDialog`: Added `Start Delay (ms)` input, syntax reference card for special keys & combinations, and updated layout.
+- **Testing**:
+  - 75 new unit tests (147 total) covering parser edge cases, special keys, combinations, brace escaping, start delays, repeat loops, clipboard mode, capitalization modes, and validation.
+
 ## [0.2.0] - 2026-10-05
 
 ### Added

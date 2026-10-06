@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoTyper.Models;
 
 namespace AutoTyper.Services.Engine;
 
@@ -15,7 +16,7 @@ public class TypingProgress
 }
 
 /// <summary>
-/// Abstraction for the typing engine that simulates text input character-by-character.
+/// Abstraction for the typing engine that simulates text input character-by-character or via clipboard.
 /// </summary>
 public interface ITypingEngine
 {
@@ -30,7 +31,7 @@ public interface ITypingEngine
     event EventHandler<TypingState>? StateChanged;
 
     /// <summary>
-    /// Raised when typing progress changes (after each character).
+    /// Raised when typing progress changes (after each character/token/repeat).
     /// </summary>
     event EventHandler<TypingProgress>? ProgressChanged;
 
@@ -45,4 +46,11 @@ public interface ITypingEngine
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     Task TypeTextAsync(string text, int delayMs, bool useJitter, int minDelayMs, int maxDelayMs,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Executes typing for a complete profile including start delay, repeat loop, special-key tokens, and typing mode.
+    /// </summary>
+    /// <param name="profile">The profile to type.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    Task TypeProfileAsync(AutoTypeProfile profile, CancellationToken cancellationToken);
 }

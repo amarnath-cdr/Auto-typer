@@ -108,6 +108,25 @@ public class ProfileValidationTests
     [Theory]
     [InlineData(-1)]
     [InlineData(60001)]
+    public void Validate_InvalidStartDelay_ReturnsError(int delay)
+    {
+        var profile = new AutoTypeProfile
+        {
+            Name = "Valid Name",
+            Shortcut = "F7",
+            Text = "Valid text",
+            StartDelayMs = delay
+        };
+
+        var result = ProfileValidator.Validate(profile);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Contains("Start delay"));
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(60001)]
     public void Validate_InvalidTypingDelay_ReturnsError(int delay)
     {
         var profile = new AutoTypeProfile
@@ -167,7 +186,7 @@ public class ProfileValidationTests
     [Theory]
     [InlineData(0)]
     [InlineData(-5)]
-    [InlineData(100001)]
+    [InlineData(1001)]
     public void Validate_InvalidRepeatCount_ReturnsError(int count)
     {
         var profile = new AutoTypeProfile

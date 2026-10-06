@@ -257,13 +257,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
         try
         {
-            await _typingEngine.TypeTextAsync(
-                profile.Text,
-                profile.TypingDelayMs,
-                profile.UseJitter,
-                profile.MinDelayMs,
-                profile.MaxDelayMs,
-                _typingCts.Token);
+            await _typingEngine.TypeProfileAsync(profile, _typingCts.Token);
         }
         catch (OperationCanceledException)
         {

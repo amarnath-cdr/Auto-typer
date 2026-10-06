@@ -12,6 +12,7 @@ public class ProfileEditorViewModel : ViewModelBase
     private string _shortcut = "F7";
     private string _text = string.Empty;
     private string _comment = string.Empty;
+    private int _startDelayMs = 0;
     private int _typingDelayMs = 20;
     private bool _useJitter;
     private int _minDelayMs = 10;
@@ -33,6 +34,7 @@ public class ProfileEditorViewModel : ViewModelBase
             _shortcut = existingProfile.Shortcut;
             _text = existingProfile.Text;
             _comment = existingProfile.Comment;
+            _startDelayMs = existingProfile.StartDelayMs;
             _typingDelayMs = existingProfile.TypingDelayMs;
             _useJitter = existingProfile.UseJitter;
             _minDelayMs = existingProfile.MinDelayMs;
@@ -97,6 +99,18 @@ public class ProfileEditorViewModel : ViewModelBase
     {
         get => _comment;
         set => SetProperty(ref _comment, value);
+    }
+
+    public int StartDelayMs
+    {
+        get => _startDelayMs;
+        set
+        {
+            if (SetProperty(ref _startDelayMs, value))
+            {
+                Validate();
+            }
+        }
     }
 
     public int TypingDelayMs
@@ -230,6 +244,7 @@ public class ProfileEditorViewModel : ViewModelBase
             Shortcut = Shortcut.Trim(),
             Text = Text ?? string.Empty,
             Comment = Comment?.Trim() ?? string.Empty,
+            StartDelayMs = StartDelayMs,
             TypingDelayMs = TypingDelayMs,
             UseJitter = UseJitter,
             MinDelayMs = MinDelayMs,
@@ -246,6 +261,7 @@ public class ProfileEditorViewModel : ViewModelBase
     {
         return !string.IsNullOrWhiteSpace(Name) &&
                !string.IsNullOrWhiteSpace(Shortcut) &&
+               StartDelayMs >= 0 &&
                TypingDelayMs >= 0 &&
                RepeatCount >= 1;
     }

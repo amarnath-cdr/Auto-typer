@@ -15,6 +15,8 @@ public class AutoTypeProfile
 
     public string Comment { get; set; } = string.Empty;
 
+    public int StartDelayMs { get; set; } = 0;
+
     public int TypingDelayMs { get; set; } = 20;
 
     public bool UseJitter { get; set; } = false;
@@ -60,6 +62,7 @@ public class AutoTypeProfile
             Shortcut = Shortcut,
             Text = Text,
             Comment = Comment,
+            StartDelayMs = StartDelayMs,
             TypingDelayMs = TypingDelayMs,
             UseJitter = UseJitter,
             MinDelayMs = MinDelayMs,
@@ -80,6 +83,7 @@ public class AutoTypeProfile
         Shortcut = other.Shortcut;
         Text = other.Text;
         Comment = other.Comment;
+        StartDelayMs = other.StartDelayMs;
         TypingDelayMs = other.TypingDelayMs;
         UseJitter = other.UseJitter;
         MinDelayMs = other.MinDelayMs;

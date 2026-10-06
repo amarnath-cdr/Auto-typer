@@ -52,6 +52,9 @@ public class SearchTests
         public List<char> TypedCharacters { get; } = new();
         public void SendCharacter(char character) => TypedCharacters.Add(character);
         public void SendKeyPress(ushort virtualKeyCode) { }
+        public void SendKeyDown(ushort virtualKeyCode) { }
+        public void SendKeyUp(ushort virtualKeyCode) { }
+        public void SendKeyCombination(IReadOnlyList<ushort> modifiers, ushort targetKey) { }
         public void ReleaseAllModifiers() { }
     }
 

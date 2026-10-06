@@ -33,6 +33,18 @@ public class TypingEngineTests
             KeyPresses.Add(virtualKeyCode);
         }
 
+        public void SendKeyDown(ushort virtualKeyCode)
+        {
+        }
+
+        public void SendKeyUp(ushort virtualKeyCode)
+        {
+        }
+
+        public void SendKeyCombination(IReadOnlyList<ushort> modifiers, ushort targetKey)
+        {
+        }
+
         public void ReleaseAllModifiers()
         {
             ReleaseModifiersCallCount++;

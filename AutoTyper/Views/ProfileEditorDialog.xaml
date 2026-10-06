@@ -7,7 +7,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="{Binding Title}"
-        Height="730" Width="540"
+        Height="780" Width="560"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -37,7 +37,7 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
-            <TextBlock Text="Configure trigger shortcuts, content, and execution timing."
+            <TextBlock Text="Configure trigger shortcuts, content, special keys, and execution timing."
                        FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0" />
         </StackPanel>
 
@@ -68,15 +68,24 @@
                 </Grid>
 
                 <!-- Text Content -->
-                <StackPanel Margin="0,0,0,12">
+                <StackPanel Margin="0,0,0,8">
                     <TextBlock Text="Text to Type *" Style="{StaticResource FormLabelStyle}" />
                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource ModernTextBoxStyle}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
-                             Height="110"
+                             Height="100"
                              VerticalScrollBarVisibility="Auto" />
                 </StackPanel>
+
+                <!-- Special Key Syntax Guide -->
+                <Border Style="{StaticResource CardStyle}" Padding="10,8" Margin="0,0,0,12" Background="{DynamicResource ControlBackgroundBrush}">
+                    <StackPanel>
+                        <TextBlock Text="Special Keys &amp; Shortcuts Cheat Sheet" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,4" />
+                        <TextBlock Text="Keys: {ENTER} {TAB} {BACKSPACE} {ESC} {UP} {DOWN} {LEFT} {RIGHT} {F1}-{F12}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <TextBlock Text="Combos: {CTRL+C} {CTRL+V} {ALT+TAB} {WIN+D} {CTRL+SHIFT+S}  |  Literal: {{ and }}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                    </StackPanel>
+                </Border>
 
                 <!-- Comment / Description -->
                 <StackPanel Margin="0,0,0,12">
@@ -87,8 +96,10 @@
                 <!-- Timing & Mode Row -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.2*" />
+                        <ColumnDefinition Width="12" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="12" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -101,7 +112,12 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="Base Typing Delay (ms)" Style="{StaticResource FormLabelStyle}" />
+                        <TextBlock Text="Start Delay (ms)" Style="{StaticResource FormLabelStyle}" />
+                        <TextBox Text="{Binding StartDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="Typing Delay (ms)" Style="{StaticResource FormLabelStyle}" />
                         <TextBox Text="{Binding TypingDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
                     </StackPanel>
                 </Grid>

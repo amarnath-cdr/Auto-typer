@@ -14,14 +14,26 @@ A modern Windows desktop auto-typing application.
 **AutoTyper** is an open-source Windows x64 desktop utility designed to manage and automate keystroke simulation, text insertion profiles, and hotkey configurations. Built using **C#**, **.NET 8**, **WPF**, and the **MVVM (Model-View-ViewModel)** architectural pattern, AutoTyper emphasizes clean separation of concerns, robust JSON persistence, layout-independent Unicode typing via `SendInput`, and global hotkey integration.
 
 > [!NOTE]
-> **Project Status: Phase 2 — Keystroke Simulation & Global Hotkeys Completed**  
-> Character-by-character typing simulation, customizable constant and randomized jitter delays, global hotkeys with `RegisterHotKey`, async cancellation with `CancellationToken`, and modifier safety cleanup are fully implemented and covered by 72 unit tests.
+> **Project Status: Phase 3 — Special Keys & Advanced Typing Completed**  
+> Token parser (`{ENTER}`, `{TAB}`, `{F1}`–`{F12}`, etc.), modifier combinations (`{CTRL+C}`, `{ALT+TAB}`, `{WIN+D}`, `{CTRL+SHIFT+S}`), brace escaping (`{{` and `}}`), start delays, repeat loops, and clipboard mode with automatic restoration are fully implemented and verified across 147 unit tests.
 
 ---
 
 ## Features
 
-### Currently Implemented (Phase 1 & Phase 2)
+### Currently Implemented (Phases 1, 2 & 3)
+- **Special Key & Combination Parser**:
+  - Special keys: `{ENTER}`, `{TAB}`, `{BACKSPACE}`, `{ESC}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{DELETE}`, `{INSERT}`, `{PAGEUP}`, `{PAGEDOWN}`, `{CAPSLOCK}`, `{NUMLOCK}`, `{SCROLLLOCK}`, `{PRINTSCREEN}`, `{PAUSE}`.
+  - Function keys: `{F1}` through `{F12}`.
+  - Modifier combinations: `{CTRL+C}`, `{CTRL+V}`, `{CTRL+A}`, `{CTRL+Z}`, `{CTRL+S}`, `{SHIFT+TAB}`, `{ALT+TAB}`, `{WIN+D}`, `{CTRL+SHIFT+S}`, etc.
+  - Literal brace escaping: `{{` for `{`, `}}` for `}` (e.g. `{{CTRL+C}}` outputs `{CTRL+C}`).
+  - Graceful fallback: Non-token braces (e.g. `{world}`) are automatically preserved as literal text.
+- **Advanced Execution Modes & Options**:
+  - **Simulated Mode**: Token-by-token and character-by-character typing via `SendInput`.
+  - **Clipboard Mode**: Fast clipboard paste via `Ctrl+V` with automatic clipboard backup and restoration.
+  - **Start Delay**: Configurable initial wait (`StartDelayMs`, 0–60,000ms) with cancellation support.
+  - **Repeat Count**: Repeat loop execution (`RepeatCount`, 1–1,000) with cancellation checks.
+  - **Capitalization Transforms**: `Original`, `Uppercase`, `Lowercase`, and `SentenceCase`.
 - **Character-by-Character Keystroke Simulation**:
   - Layout-independent typing using Windows `SendInput` with `KEYEVENTF_UNICODE`.
   - Non-blocking async execution using `Task.Delay` and `CancellationToken`.
@@ -34,7 +46,7 @@ A modern Windows desktop auto-typing application.
   - Global Stop Hotkey (default: `Escape`) to halt active typing instantly from any window.
   - Conflict detection, validation, and lifecycle unregistration.
 - **Profile Management**:
-  - **Create / Edit Profiles**: Name, Shortcut, Multiline Text, Comment, Delay, Jitter bounds, Mode, Capitalization, Repeat Count.
+  - **Create / Edit Profiles**: Name, Shortcut, Multiline Text, Comment, Start Delay, Delay, Jitter bounds, Mode, Capitalization, Repeat Count.
   - **Duplicate Profiles**: One-click profile cloning with UUID generation.
   - **Delete Profiles**: Remove profiles with optional confirmation safety prompt.
   - **Enable / Disable Toggle**: Fast individual profile activation without deletion.
@@ -47,7 +59,7 @@ A modern Windows desktop auto-typing application.
   - Dynamic runtime switching between **Light**, **Dark**, and **System** themes.
   - Automatic Windows system dark mode detection via Windows personalization settings.
 - **Quality & Verification**:
-  - 72 automated xUnit tests validating typing sequences, delays, jitter, cancellation, hotkeys, serialization, storage, search, and validation.
+  - 147 automated xUnit tests validating parsing, combinations, delays, jitter, cancellation, clipboard mode, hotkeys, serialization, storage, search, and validation.
   - GitHub Actions CI pipeline executing on every push and pull request.
 
 ---

@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace AutoTyper.Services.Keyboard;
 
 /// <summary>
 /// Windows implementation of <see cref="IKeyboardSimulator"/> using the SendInput API
-/// with KEYEVENTF_UNICODE for layout-independent Unicode character input.
+/// with KEYEVENTF_UNICODE for layout-independent Unicode character input and
+/// native virtual key codes for special keys and modifier combinations.
 /// </summary>
 public class WindowsKeyboardSimulator : IKeyboardSimulator
 {
@@ -185,6 +187,165 @@ public class WindowsKeyboardSimulator : IKeyboardSimulator
             var error = Marshal.GetLastWin32Error();
             throw new InvalidOperationException(
                 $"SendInput failed for virtual key 0x{virtualKeyCode:X2}. Win32 error: {error}");
+        }
+    }
+
+    /// <inheritdoc />
+    public void SendKeyDown(ushort virtualKeyCode)
+    {
+        var inputs = new INPUT[1];
+        inputs[0] = new INPUT
+        {
+            type = INPUT_KEYBOARD,
+            u = new INPUTUNION
+            {
+                ki = new KEYBDINPUT
+                {
+                    wVk = virtualKeyCode,
+                    wScan = 0,
+                    dwFlags = 0,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
+        var result = SendInput(1, inputs, Marshal.SizeOf<INPUT>());
+        if (result == 0)
+        {
+            var error = Marshal.GetLastWin32Error();
+            throw new InvalidOperationException(
+                $"SendInput key-down failed for virtual key 0x{virtualKeyCode:X2}. Win32 error: {error}");
+        }
+    }
+
+    /// <inheritdoc />
+    public void SendKeyUp(ushort virtualKeyCode)
+    {
+        var inputs = new INPUT[1];
+        inputs[0] = new INPUT
+        {
+            type = INPUT_KEYBOARD,
+            u = new INPUTUNION
+            {
+                ki = new KEYBDINPUT
+                {
+                    wVk = virtualKeyCode,
+                    wScan = 0,
+                    dwFlags = KEYEVENTF_KEYUP,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
+        var result = SendInput(1, inputs, Marshal.SizeOf<INPUT>());
+        if (result == 0)
+        {
+            var error = Marshal.GetLastWin32Error();
+            throw new InvalidOperationException(
+                $"SendInput key-up failed for virtual key 0x{virtualKeyCode:X2}. Win32 error: {error}");
+        }
+    }
+
+    /// <inheritdoc />
+    public void SendKeyCombination(IReadOnlyList<ushort> modifiers, ushort targetKey)
+    {
+        ArgumentNullException.ThrowIfNull(modifiers);
+
+        // Total events = modifiers.Count (down) + 2 (target down/up) + modifiers.Count (up)
+        int totalInputs = (modifiers.Count * 2) + 2;
+        var inputs = new INPUT[totalInputs];
+        int index = 0;
+
+        // 1. Modifiers Down
+        for (int i = 0; i < modifiers.Count; i++)
+        {
+            inputs[index++] = new INPUT
+            {
+                type = INPUT_KEYBOARD,
+                u = new INPUTUNION
+                {
+                    ki = new KEYBDINPUT
+                    {
+                        wVk = modifiers[i],
+                        wScan = 0,
+                        dwFlags = 0,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                }
+            };
+        }
+
+        // 2. Target Key Down
+        inputs[index++] = new INPUT
+        {
+            type = INPUT_KEYBOARD,
+            u = new INPUTUNION
+            {
+                ki = new KEYBDINPUT
+                {
+                    wVk = targetKey,
+                    wScan = 0,
+                    dwFlags = 0,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
+        // 3. Target Key Up
+        inputs[index++] = new INPUT
+        {
+            type = INPUT_KEYBOARD,
+            u = new INPUTUNION
+            {
+                ki = new KEYBDINPUT
+                {
+                    wVk = targetKey,
+                    wScan = 0,
+                    dwFlags = KEYEVENTF_KEYUP,
+                    time = 0,
+                    dwExtraInfo = IntPtr.Zero
+                }
+            }
+        };
+
+        // 4. Modifiers Up in reverse order
+        for (int i = modifiers.Count - 1; i >= 0; i--)
+        {
+            inputs[index++] = new INPUT
+            {
+                type = INPUT_KEYBOARD,
+                u = new INPUTUNION
+                {
+                    ki = new KEYBDINPUT
+                    {
+                        wVk = modifiers[i],
+                        wScan = 0,
+                        dwFlags = KEYEVENTF_KEYUP,
+                        time = 0,
+                        dwExtraInfo = IntPtr.Zero
+                    }
+                }
+            };
+        }
+
+        try
+        {
+            var result = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
+            if (result == 0)
+            {
+                var error = Marshal.GetLastWin32Error();
+                throw new InvalidOperationException(
+                    $"SendInput failed for key combination with target key 0x{targetKey:X2}. Win32 error: {error}");
+            }
+        }
+        finally
+        {
+            // Safety: if anything failed, release modifiers
+            ReleaseAllModifiers();
         }
     }
 

@@ -42,6 +42,11 @@ public static class ProfileValidator
             result.AddError($"Shortcut '{profile.Shortcut}' is not a valid key combination.");
         }
 
+        if (profile.StartDelayMs < 0 || profile.StartDelayMs > 60000)
+        {
+            result.AddError("Start delay must be between 0ms and 60,000ms.");
+        }
+
         if (profile.TypingDelayMs < 0 || profile.TypingDelayMs > 60000)
         {
             result.AddError("Typing delay must be between 0ms and 60,000ms.");
@@ -65,9 +70,9 @@ public static class ProfileValidator
             }
         }
 
-        if (profile.RepeatCount < 1 || profile.RepeatCount > 100000)
+        if (profile.RepeatCount < 1 || profile.RepeatCount > 1000)
         {
-            result.AddError("Repeat count must be between 1 and 100,000.");
+            result.AddError("Repeat count must be between 1 and 1,000.");
         }
 
         if (profile.Text == null)
