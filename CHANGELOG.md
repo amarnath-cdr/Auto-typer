@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-06
+
+### Added
+- **Final Polish & Release Readiness (Phase 5)**:
+  - Updated application versioning and README documentation.
+  - Added explicit `{WAIT:ms}` token for typing delays in Simulated mode with comprehensive test coverage.
+  - Hardened parser constraints (maximum 60,000ms explicit wait) to prevent indefinite hangs.
+  - Removed generated publish artifacts from source tracking via `.gitignore`.
+  - Audited UI rendering, single-instance mutices, clipboard state restoration, and background disposal lifecycles to guarantee release-grade reliability.
+
 ## [0.4.0] - 2026-10-06
 
 ### Added

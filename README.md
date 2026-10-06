@@ -14,14 +14,12 @@ A modern Windows desktop auto-typing application.
 **AutoTyper** is an open-source Windows x64 desktop utility designed to manage and automate keystroke simulation, text insertion profiles, and hotkey configurations. Built using **C#**, **.NET 8**, **WPF**, and the **MVVM (Model-View-ViewModel)** architectural pattern, AutoTyper emphasizes clean separation of concerns, robust JSON persistence, layout-independent Unicode typing via `SendInput`, and global hotkey integration.
 
 > [!NOTE]
-> **Project Status: Phase 4 — Windows Integration & Desktop Polish Completed**  
-> System tray icon with context menu, Minimize to Tray, Close to Tray, Start with Windows, Windows event notifications, single-instance mutex protection, and persistent desktop preferences are fully implemented and verified across 163 unit tests.
+> **Project Status: Phase 5 — Distribution & Packaging Completed**  
+> AutoTyper is now a polished, 1.0 release-ready desktop utility. It features robust keystroke simulation, robust system tray integration, single-instance protection, and a highly customizable typing engine.
 
 ---
 
 ## Features
-
-### Currently Implemented (Phases 1, 2, 3 & 4)
 - **System Tray & Desktop Integration**:
   - Windows notification area tray icon with context menu (`Show AutoTyper`, `Start Selected Profile`, `Stop Typing`, `Exit`).
   - **Minimize to Tray**: Keeps AutoTyper running unobtrusively in the tray when minimized.
@@ -34,6 +32,7 @@ A modern Windows desktop auto-typing application.
   - Function keys: `{F1}` through `{F12}`.
   - Modifier combinations: `{CTRL+C}`, `{CTRL+V}`, `{CTRL+A}`, `{CTRL+Z}`, `{CTRL+S}`, `{SHIFT+TAB}`, `{ALT+TAB}`, `{WIN+D}`, `{CTRL+SHIFT+S}`, etc.
   - Literal brace escaping: `{{` for `{`, `}}` for `}` (e.g. `{{CTRL+C}}` outputs `{CTRL+C}`).
+  - Explicit waits: `{WAIT:ms}` pauses typing for the specified milliseconds (e.g. `{WAIT:1000}` pauses for 1 second). *Note: Supported in Simulated Mode only; Clipboard Mode treats this as literal text.*
   - Graceful fallback: Non-token braces (e.g. `{world}`) are automatically preserved as literal text.
 - **Advanced Execution Modes & Options**:
   - **Simulated Mode**: Token-by-token and character-by-character typing via `SendInput`.
@@ -102,10 +101,11 @@ A modern Windows desktop auto-typing application.
    ```
 
 ### Standalone Executable
-Publish a self-contained or framework-dependent Windows x64 executable:
+Publish a framework-dependent Windows x64 executable (requires .NET 8 Desktop Runtime):
 ```powershell
-dotnet publish AutoTyper/AutoTyper.csproj -c Release -r win-x64 --self-contained false -o ./publish
+dotnet publish AutoTyper/AutoTyper.csproj -c Release -r win-x64 --self-contained false -o ./artifacts/release
 ```
+The resulting executable will be available at `artifacts/release/AutoTyper.exe`.
 
 ---
 
@@ -117,6 +117,15 @@ dotnet publish AutoTyper/AutoTyper.csproj -c Release -r win-x64 --self-contained
 4. **Stop Typing**: Press the global stop hotkey (`Escape`) or click **⏹ Stop** to halt typing immediately.
 5. **Configure Jitter**: Open the profile editor, check **Enable Random Jitter**, and set the min/max millisecond bounds.
 6. **Adjust Settings**: Click **⚙ Settings** to switch themes, customize the global stop hotkey, or change default profile timing.
+
+---
+
+## Troubleshooting
+
+- **Global Hotkeys Not Working**: Ensure no other application (like a screen recorder or game overlay) is using the same shortcut. The global stop hotkey (`Escape` by default) overrides all profiles.
+- **Typing Is Missing Characters or Out of Order**: In Simulated Mode, applications might not process keystrokes fast enough. Edit your profile, check **Enable Random Jitter**, and slightly increase the typing delays (e.g. `20ms` to `50ms`).
+- **Wait Tokens Ignored**: The `{WAIT:ms}` token is supported in Simulated Mode only. In Clipboard mode, the entire text payload is pasted instantly via `Ctrl+V`, making sequential wait tokens semantically invalid. They will be treated as literal text.
+- **AutoTyper Doesn't Start**: Check the system tray (notification area). AutoTyper uses single-instance mutex protection and defaults to minimizing to the tray. 
 
 ---
 
@@ -271,9 +280,11 @@ The development of AutoTyper is structured into sequential phases:
   - Windows event balloon notifications for typing transitions
   - Single-instance application protection via named Mutex & activation handle
   - 163 automated unit tests
-- [ ] **Phase 5 — Distribution & Packaging** *(Planned)*
-  - Windows x64 single-file installer & portable release
-  - Code signing & GitHub Releases automation
+- [x] **Phase 5 — Distribution & Packaging**
+  - Project documentation & portfolio presentation
+  - Publish command & runtime integration testing
+  - Windows UI layout polish and version validation
+  - Final test suite validation (176 automated tests)
 
 ---
 

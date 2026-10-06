@@ -35,7 +35,7 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="AutoTyper" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                 <Border Background="{DynamicResource BadgeBackgroundBrush}" CornerRadius="10" Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="v0.2.0 Keystroke Engine" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BadgeForegroundBrush}" />
+                    <TextBlock Text="v1.0.0 Desktop App" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BadgeForegroundBrush}" />
                 </Border>
             </StackPanel>
 
