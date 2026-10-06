@@ -277,6 +277,19 @@ public class TypingEngine : ITypingEngine
                             }
                         }
                         break;
+
+                    case TokenType.Wait:
+                        if (token.WaitMilliseconds > 0)
+                        {
+                            await _delayProvider.DelayAsync(token.WaitMilliseconds, cancellationToken);
+                        }
+                        currentStep++;
+                        ProgressChanged?.Invoke(this, new TypingProgress
+                        {
+                            CurrentIndex = currentStep,
+                            TotalCharacters = totalSteps
+                        });
+                        break;
                 }
             }
         }

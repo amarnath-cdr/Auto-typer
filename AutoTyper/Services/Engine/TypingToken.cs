@@ -15,7 +15,10 @@ public enum TokenType
     SpecialKey,
 
     /// <summary>A key combination with modifiers (e.g. {CTRL+C}, {ALT+TAB}, {CTRL+SHIFT+S}).</summary>
-    KeyCombination
+    KeyCombination,
+
+    /// <summary>An explicit wait/delay token (e.g. {WAIT:500}).</summary>
+    Wait
 }
 
 /// <summary>
@@ -33,6 +36,9 @@ public class TypingToken
 
     /// <summary>List of modifier virtual key codes (e.g. VK_CONTROL, VK_SHIFT, VK_MENU, VK_LWIN).</summary>
     public IReadOnlyList<ushort> Modifiers { get; init; } = Array.Empty<ushort>();
+
+    /// <summary>The duration to wait in milliseconds when <see cref="Type"/> is <see cref="TokenType.Wait"/>.</summary>
+    public int WaitMilliseconds { get; init; }
 
     /// <summary>Human-readable token description or tag name.</summary>
     public string Name { get; init; } = string.Empty;
@@ -59,11 +65,19 @@ public class TypingToken
         Name = name
     };
 
+    public static TypingToken CreateWait(int milliseconds, string name) => new()
+    {
+        Type = TokenType.Wait,
+        WaitMilliseconds = milliseconds,
+        Name = name
+    };
+
     public override string ToString() => Type switch
     {
         TokenType.Text => $"Text(\"{Text}\")",
         TokenType.SpecialKey => $"SpecialKey({Name})",
         TokenType.KeyCombination => $"KeyCombination({Name})",
+        TokenType.Wait => $"Wait({WaitMilliseconds}ms)",
         _ => base.ToString() ?? string.Empty
     };
 }

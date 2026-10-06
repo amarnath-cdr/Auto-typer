@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoTyper.Models;
 using AutoTyper.Services.Engine;
 using AutoTyper.Services.Keyboard;
 using Xunit;
@@ -252,5 +253,67 @@ public class TypingEngineTests
         // Assert
         Assert.Equal(1000, simulator.TypedCharacters.Count);
         Assert.Equal(TypingState.Completed, engine.CurrentState);
+    }
+
+    [Fact]
+    public async Task TypeProfileAsync_WithWaitToken_PausesExplicitly()
+    {
+        // Arrange
+        var simulator = new TestKeyboardSimulator();
+        var delayProvider = new TestDelayProvider();
+        var parser = new TypingParser();
+        var engine = new TypingEngine(simulator, delayProvider, parser);
+
+        var profile = new AutoTypeProfile
+        {
+            Text = "A{WAIT:500}B",
+            TypingDelayMs = 20,
+            TypingMode = TypingMode.Simulated,
+            RepeatCount = 1
+        };
+
+        // Act
+        await engine.TypeProfileAsync(profile, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(2, simulator.TypedCharacters.Count); // A and B
+        
+        // Expected delays:
+        // After 'A', standard delay 20ms
+        // Then WAIT token delays 500ms
+        // So RecordedDelays should contain 20, then 500.
+        // B is last, no delay after B.
+        Assert.Equal(2, delayProvider.RecordedDelays.Count);
+        Assert.Equal(20, delayProvider.RecordedDelays[0]);
+        Assert.Equal(500, delayProvider.RecordedDelays[1]);
+    }
+
+    [Fact]
+    public async Task TypeProfileAsync_WithMultipleWaitTokens_PausesExplicitly()
+    {
+        // Arrange
+        var simulator = new TestKeyboardSimulator();
+        var delayProvider = new TestDelayProvider();
+        var parser = new TypingParser();
+        var engine = new TypingEngine(simulator, delayProvider, parser);
+
+        var profile = new AutoTypeProfile
+        {
+            Text = "{WAIT:100}AB{WAIT:200}",
+            TypingDelayMs = 10,
+            TypingMode = TypingMode.Simulated,
+            RepeatCount = 1
+        };
+
+        // Act
+        await engine.TypeProfileAsync(profile, CancellationToken.None);
+
+        // Assert
+        // Delays: WAIT 100 -> A -> delay 10 -> B -> delay 10 -> WAIT 200
+        Assert.Equal(4, delayProvider.RecordedDelays.Count);
+        Assert.Equal(100, delayProvider.RecordedDelays[0]);
+        Assert.Equal(10, delayProvider.RecordedDelays[1]);
+        Assert.Equal(10, delayProvider.RecordedDelays[2]);
+        Assert.Equal(200, delayProvider.RecordedDelays[3]);
     }
 }

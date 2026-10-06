@@ -170,4 +170,69 @@ public class TypingParserTests
         Assert.Equal(TokenType.Text, tokens[0].Type);
         Assert.Equal("Unmatched { brace and extra } brace", tokens[0].Text);
     }
+
+    [Theory]
+    [InlineData("{WAIT:500}", 500)]
+    [InlineData("{wait:1000}", 1000)]
+    [InlineData("{WAIT:0}", 0)]
+    [InlineData("{WaIt:2000}", 2000)]
+    public void Parse_WaitToken_ParsedCorrectly(string input, int expectedMs)
+    {
+        var tokens = _parser.Parse(input);
+
+        Assert.Single(tokens);
+        Assert.Equal(TokenType.Wait, tokens[0].Type);
+        Assert.Equal(expectedMs, tokens[0].WaitMilliseconds);
+    }
+
+    [Theory]
+    [InlineData("{WAIT:-100}")]    // Negative value
+    [InlineData("{WAIT:500.5}")]   // Decimal
+    [InlineData("{WAIT:abc}")]     // Non-numeric
+    [InlineData("{WAIT:}")]        // Empty value
+    [InlineData("{WAIT}")]         // Missing colon
+    public void Parse_InvalidWaitSyntax_TreatedAsLiteralText(string input)
+    {
+        var tokens = _parser.Parse(input);
+
+        Assert.Single(tokens);
+        Assert.Equal(TokenType.Text, tokens[0].Type);
+        Assert.Equal(input, tokens[0].Text);
+    }
+
+    [Fact]
+    public void Parse_WaitExceedsMax_TreatedAsLiteralText()
+    {
+        var tokens = _parser.Parse("{WAIT:60001}");
+
+        Assert.Single(tokens);
+        Assert.Equal(TokenType.Text, tokens[0].Type);
+        Assert.Equal("{WAIT:60001}", tokens[0].Text);
+
+        var tokens2 = _parser.Parse("{WAIT:999999}");
+        Assert.Single(tokens2);
+        Assert.Equal(TokenType.Text, tokens2[0].Type);
+    }
+
+    [Fact]
+    public void Parse_WaitMixedWithText_ParsesCorrectly()
+    {
+        var tokens = _parser.Parse("A{WAIT:100}B{WAIT:200}C");
+
+        Assert.Equal(5, tokens.Count);
+        Assert.Equal(TokenType.Text, tokens[0].Type);
+        Assert.Equal("A", tokens[0].Text);
+
+        Assert.Equal(TokenType.Wait, tokens[1].Type);
+        Assert.Equal(100, tokens[1].WaitMilliseconds);
+
+        Assert.Equal(TokenType.Text, tokens[2].Type);
+        Assert.Equal("B", tokens[2].Text);
+
+        Assert.Equal(TokenType.Wait, tokens[3].Type);
+        Assert.Equal(200, tokens[3].WaitMilliseconds);
+
+        Assert.Equal(TokenType.Text, tokens[4].Type);
+        Assert.Equal("C", tokens[4].Text);
+    }
 }

@@ -152,14 +152,26 @@ public class TypingParser : ITypingParser
         if (string.IsNullOrWhiteSpace(content))
             return false;
 
-        // 1. Check if it's a single special key (e.g. "ENTER", "TAB", "F7")
+        // 1. Check for explicit WAIT token (e.g. "WAIT:500")
+        if (content.StartsWith("WAIT:", StringComparison.OrdinalIgnoreCase))
+        {
+            string waitValueStr = content.Substring(5).Trim();
+            if (int.TryParse(waitValueStr, out int waitMs) && waitMs >= 0 && waitMs <= 60000)
+            {
+                token = TypingToken.CreateWait(waitMs, $"WAIT:{waitMs}");
+                return true;
+            }
+            return false; // Invalid wait syntax or out-of-range treated as literal text
+        }
+
+        // 2. Check if it's a single special key (e.g. "ENTER", "TAB", "F7")
         if (SpecialKeyMap.TryGetValue(content, out ushort specialVk))
         {
             token = TypingToken.CreateSpecialKey(specialVk, content.ToUpperInvariant());
             return true;
         }
 
-        // 2. Check if it's a modifier combination (e.g. "CTRL+C", "ALT+TAB", "CTRL+SHIFT+S")
+        // 3. Check if it's a modifier combination (e.g. "CTRL+C", "ALT+TAB", "CTRL+SHIFT+S")
         if (content.Contains('+'))
         {
             var parts = content.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

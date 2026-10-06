@@ -84,6 +84,7 @@
                         <TextBlock Text="Special Keys &amp; Shortcuts Cheat Sheet" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,0,4" />
                         <TextBlock Text="Keys: {ENTER} {TAB} {BACKSPACE} {ESC} {UP} {DOWN} {LEFT} {RIGHT} {F1}-{F12}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                         <TextBlock Text="Combos: {CTRL+C} {CTRL+V} {ALT+TAB} {WIN+D} {CTRL+SHIFT+S}  |  Literal: {{ and }}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                        <TextBlock Text="Wait (Simulated Mode Only): {WAIT:500} = pause 500ms" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" />
                     </StackPanel>
                 </Border>
 
