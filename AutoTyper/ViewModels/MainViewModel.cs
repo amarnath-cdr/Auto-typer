@@ -9,6 +9,8 @@ using AutoTyper.Models;
 using AutoTyper.Services;
 using AutoTyper.Services.Engine;
 using AutoTyper.Services.Hotkeys;
+using AutoTyper.Services.Notifications;
+using AutoTyper.Services.Tray;
 
 namespace AutoTyper.ViewModels;
 
@@ -19,6 +21,8 @@ public class MainViewModel : ViewModelBase, IDisposable
     private readonly IThemeService _themeService;
     private readonly ITypingEngine _typingEngine;
     private readonly IHotkeyService _hotkeyService;
+    private readonly INotificationService? _notificationService;
+    private readonly ITrayIconService? _trayIconService;
 
     private readonly List<AutoTypeProfile> _allProfiles = new();
     private readonly Dictionary<int, AutoTypeProfile> _hotkeyProfileMap = new();
@@ -39,13 +43,17 @@ public class MainViewModel : ViewModelBase, IDisposable
         ISettingsStorageService settingsStorage,
         IThemeService themeService,
         ITypingEngine typingEngine,
-        IHotkeyService hotkeyService)
+        IHotkeyService hotkeyService,
+        INotificationService? notificationService = null,
+        ITrayIconService? trayIconService = null)
     {
         _profileStorage = profileStorage ?? throw new ArgumentNullException(nameof(profileStorage));
         _settingsStorage = settingsStorage ?? throw new ArgumentNullException(nameof(settingsStorage));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _typingEngine = typingEngine ?? throw new ArgumentNullException(nameof(typingEngine));
         _hotkeyService = hotkeyService ?? throw new ArgumentNullException(nameof(hotkeyService));
+        _notificationService = notificationService;
+        _trayIconService = trayIconService;
 
         Profiles = new ObservableCollection<AutoTypeProfile>();
 
@@ -77,6 +85,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             if (SetProperty(ref _selectedProfile, value))
             {
                 CommandManager.InvalidateRequerySuggested();
+                UpdateTrayState();
             }
         }
     }
@@ -111,6 +120,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 _settingsStorage.SaveSettings(settings);
                 OnPropertyChanged(nameof(MasterEnabledText));
                 RegisterGlobalHotkeys();
+                UpdateTrayState();
             }
         }
     }
@@ -127,6 +137,7 @@ public class MainViewModel : ViewModelBase, IDisposable
                 OnPropertyChanged(nameof(IsTyping));
                 OnPropertyChanged(nameof(StateDisplayText));
                 CommandManager.InvalidateRequerySuggested();
+                UpdateTrayState();
             }
         }
     }
@@ -179,6 +190,7 @@ public class MainViewModel : ViewModelBase, IDisposable
 
         ApplyFilter();
         UpdateCounts();
+        UpdateTrayState();
     }
 
     public void RegisterGlobalHotkeys()
@@ -254,18 +266,30 @@ public class MainViewModel : ViewModelBase, IDisposable
 
         _typingCts = new CancellationTokenSource();
         StatusMessage = $"Typing profile '{profile.Name}'...";
+        _notificationService?.ShowNotification("AutoTyper", $"Typing started: {profile.Name}");
 
         try
         {
             await _typingEngine.TypeProfileAsync(profile, _typingCts.Token);
+            if (_typingEngine.CurrentState == TypingState.Completed)
+            {
+                _notificationService?.ShowNotification("AutoTyper", $"Typing completed: {profile.Name}");
+            }
+            else if (_typingEngine.CurrentState == TypingState.Stopped)
+            {
+                StatusMessage = $"Typing of '{profile.Name}' was stopped.";
+                _notificationService?.ShowNotification("AutoTyper", "Typing stopped");
+            }
         }
         catch (OperationCanceledException)
         {
             StatusMessage = $"Typing of '{profile.Name}' was stopped.";
+            _notificationService?.ShowNotification("AutoTyper", "Typing stopped");
         }
         catch (Exception ex)
         {
             StatusMessage = $"Error typing '{profile.Name}': {ex.Message}";
+            _notificationService?.ShowNotification("AutoTyper", $"Typing error: {ex.Message}", NotificationType.Error);
         }
         finally
         {
@@ -274,9 +298,9 @@ public class MainViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private void StartTypingSelected()
+    public void StartTypingSelected()
     {
-        if (SelectedProfile != null)
+        if (SelectedProfile != null && IsMasterEnabled && SelectedProfile.IsEnabled)
         {
             _ = StartTypingAsync(SelectedProfile);
         }
@@ -289,6 +313,12 @@ public class MainViewModel : ViewModelBase, IDisposable
             _typingCts.Cancel();
             StatusMessage = "Stopping typing...";
         }
+    }
+
+    public void UpdateTrayState()
+    {
+        bool canStart = SelectedProfile != null && SelectedProfile.IsEnabled && IsMasterEnabled;
+        _trayIconService?.UpdateMenuState(canStart, IsTyping);
     }
 
     private void OnHotkeyPressed(object? sender, int hotkeyId)
@@ -430,6 +460,7 @@ public class MainViewModel : ViewModelBase, IDisposable
         var settings = _settingsStorage.LoadSettings();
         IsMasterEnabled = settings.AutoTyperMasterEnabled;
         RegisterGlobalHotkeys();
+        UpdateTrayState();
     }
 
     private void SaveProfiles()
@@ -453,6 +484,7 @@ public class MainViewModel : ViewModelBase, IDisposable
             _typingEngine.ProgressChanged -= OnTypingEngineProgressChanged;
             _hotkeyService.HotkeyPressed -= OnHotkeyPressed;
             _hotkeyService.Dispose();
+            _trayIconService?.Dispose();
             _disposed = true;
         }
     }

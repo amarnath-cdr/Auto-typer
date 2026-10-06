@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Input;
 using AutoTyper.Models;
 using AutoTyper.Services;
+using AutoTyper.Services.Startup;
 using AutoTyper.Utilities;
 
 namespace AutoTyper.ViewModels;
@@ -12,17 +13,26 @@ public class SettingsViewModel : ViewModelBase
 {
     private readonly ISettingsStorageService _settingsStorage;
     private readonly IThemeService _themeService;
+    private readonly IStartupService? _startupService;
 
     private AppTheme _theme;
     private bool _autoTyperMasterEnabled;
     private bool _confirmOnDelete;
     private int _defaultDelayMs;
     private string _globalStopHotkey = "Escape";
+    private bool _minimizeToTray;
+    private bool _closeToTray;
+    private bool _startWithWindows;
+    private bool _showNotifications;
 
-    public SettingsViewModel(ISettingsStorageService settingsStorage, IThemeService themeService)
+    public SettingsViewModel(
+        ISettingsStorageService settingsStorage,
+        IThemeService themeService,
+        IStartupService? startupService = null)
     {
         _settingsStorage = settingsStorage ?? throw new ArgumentNullException(nameof(settingsStorage));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
+        _startupService = startupService;
 
         var current = _settingsStorage.LoadSettings();
         _theme = current.Theme;
@@ -30,6 +40,10 @@ public class SettingsViewModel : ViewModelBase
         _confirmOnDelete = current.ConfirmOnDelete;
         _defaultDelayMs = current.DefaultDelayMs;
         _globalStopHotkey = string.IsNullOrWhiteSpace(current.GlobalStopHotkey) ? "Escape" : current.GlobalStopHotkey;
+        _minimizeToTray = current.MinimizeToTray;
+        _closeToTray = current.CloseToTray;
+        _startWithWindows = _startupService != null ? _startupService.IsStartWithWindowsEnabled() : current.StartWithWindows;
+        _showNotifications = current.ShowNotifications;
 
         SaveCommand = new RelayCommand(Save);
         CancelCommand = new RelayCommand(Cancel);
@@ -76,6 +90,30 @@ public class SettingsViewModel : ViewModelBase
         set => SetProperty(ref _globalStopHotkey, value);
     }
 
+    public bool MinimizeToTray
+    {
+        get => _minimizeToTray;
+        set => SetProperty(ref _minimizeToTray, value);
+    }
+
+    public bool CloseToTray
+    {
+        get => _closeToTray;
+        set => SetProperty(ref _closeToTray, value);
+    }
+
+    public bool StartWithWindows
+    {
+        get => _startWithWindows;
+        set => SetProperty(ref _startWithWindows, value);
+    }
+
+    public bool ShowNotifications
+    {
+        get => _showNotifications;
+        set => SetProperty(ref _showNotifications, value);
+    }
+
     public string ConfigFolderPath => PathConstants.DataDirectory;
 
     public ICommand SaveCommand { get; }
@@ -84,13 +122,20 @@ public class SettingsViewModel : ViewModelBase
 
     private void Save()
     {
+        // Update Windows startup setting
+        _startupService?.SetStartWithWindows(StartWithWindows);
+
         var settings = new AppSettings
         {
             Theme = Theme,
             AutoTyperMasterEnabled = AutoTyperMasterEnabled,
             ConfirmOnDelete = ConfirmOnDelete,
             DefaultDelayMs = DefaultDelayMs,
-            GlobalStopHotkey = GlobalStopHotkey
+            GlobalStopHotkey = GlobalStopHotkey,
+            MinimizeToTray = MinimizeToTray,
+            CloseToTray = CloseToTray,
+            StartWithWindows = StartWithWindows,
+            ShowNotifications = ShowNotifications
         };
 
         _settingsStorage.SaveSettings(settings);

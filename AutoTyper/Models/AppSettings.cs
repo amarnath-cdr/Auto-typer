@@ -14,6 +14,14 @@ public class AppSettings
 
     public string GlobalStopHotkey { get; set; } = "Escape";
 
+    public bool MinimizeToTray { get; set; } = true;
+
+    public bool CloseToTray { get; set; } = true;
+
+    public bool StartWithWindows { get; set; } = false;
+
+    public bool ShowNotifications { get; set; } = true;
+
     public AppSettings Clone()
     {
         return new AppSettings
@@ -22,7 +30,11 @@ public class AppSettings
             AutoTyperMasterEnabled = AutoTyperMasterEnabled,
             ConfirmOnDelete = ConfirmOnDelete,
             DefaultDelayMs = DefaultDelayMs,
-            GlobalStopHotkey = GlobalStopHotkey
+            GlobalStopHotkey = GlobalStopHotkey,
+            MinimizeToTray = MinimizeToTray,
+            CloseToTray = CloseToTray,
+            StartWithWindows = StartWithWindows,
+            ShowNotifications = ShowNotifications
         };
     }
 
@@ -34,5 +46,9 @@ public class AppSettings
         ConfirmOnDelete = other.ConfirmOnDelete;
         DefaultDelayMs = other.DefaultDelayMs;
         GlobalStopHotkey = other.GlobalStopHotkey;
+        MinimizeToTray = other.MinimizeToTray;
+        CloseToTray = other.CloseToTray;
+        StartWithWindows = other.StartWithWindows;
+        ShowNotifications = other.ShowNotifications;
     }
 }

@@ -7,7 +7,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="AutoTyper Settings"
-        Height="540" Width="480"
+        Height="680" Width="520"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource WindowBackgroundBrush}"
@@ -31,81 +31,126 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Text="Settings" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
-            <TextBlock Text="Manage general application preferences and appearance."
+            <TextBlock Text="Manage desktop integration, appearance, and application preferences."
                        FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0" />
         </StackPanel>
 
-        <!-- Content -->
-        <StackPanel Grid.Row="1">
-            <!-- Theme Preference -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
-                <StackPanel>
-                    <TextBlock Text="Appearance Theme" Style="{StaticResource FormLabelStyle}" />
-                    <ComboBox ItemsSource="{Binding Source={StaticResource ThemeValues}}"
-                              SelectedItem="{Binding Theme}"
-                              Padding="8,7"
-                              FontSize="13" />
-                    <TextBlock Text="Select Light, Dark, or automatically match your Windows system preference."
-                               FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,4,0,0" />
-                </StackPanel>
-            </Border>
+        <!-- Scrollable Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16">
+            <StackPanel>
+                <!-- Desktop & System Tray Integration -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Desktop &amp; Tray Integration" Style="{StaticResource FormLabelStyle}" Margin="0,0,0,8" />
 
-            <!-- Hotkeys & General Options -->
-            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
-                <StackPanel>
-                    <CheckBox Content="Master AutoTyper functionality enabled"
-                              IsChecked="{Binding AutoTyperMasterEnabled}"
-                              FontSize="13"
-                              Foreground="{DynamicResource TextPrimaryBrush}"
-                              Margin="0,0,0,8" />
+                        <CheckBox Content="Minimize to Tray"
+                                  IsChecked="{Binding MinimizeToTray}"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Margin="0,0,0,2" />
+                        <TextBlock Text="Keep AutoTyper running in the notification area when minimized."
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="24,0,0,8" />
 
-                    <CheckBox Content="Prompt for confirmation before deleting profiles"
-                              IsChecked="{Binding ConfirmOnDelete}"
-                              FontSize="13"
-                              Foreground="{DynamicResource TextPrimaryBrush}"
-                              Margin="0,0,0,8" />
+                        <CheckBox Content="Close to Tray"
+                                  IsChecked="{Binding CloseToTray}"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Margin="0,0,0,2" />
+                        <TextBlock Text="Keep AutoTyper running when the window is closed."
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="24,0,0,8" />
 
-                    <Grid Margin="0,4,0,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="110" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Global Stop Hotkey:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <TextBox Grid.Column="1" Text="{Binding GlobalStopHotkey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
-                    </Grid>
+                        <CheckBox Content="Start with Windows"
+                                  IsChecked="{Binding StartWithWindows}"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Margin="0,0,0,2" />
+                        <TextBlock Text="Launch AutoTyper automatically when you sign in to Windows."
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="24,0,0,8" />
 
-                    <Grid Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="110" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Default delay for new profiles (ms):" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                        <TextBox Grid.Column="1" Text="{Binding DefaultDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
-                    </Grid>
-                </StackPanel>
-            </Border>
+                        <CheckBox Content="Show Notifications"
+                                  IsChecked="{Binding ShowNotifications}"
+                                  FontSize="13"
+                                  FontWeight="SemiBold"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Margin="0,0,0,2" />
+                        <TextBlock Text="Show Windows notifications when typing starts, stops, or completes."
+                                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="24,0,0,0" />
+                    </StackPanel>
+                </Border>
 
-            <!-- Storage Location -->
-            <Border Style="{StaticResource CardStyle}">
-                <StackPanel>
-                    <TextBlock Text="Configuration Storage" Style="{StaticResource FormLabelStyle}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding ConfigFolderPath, Mode=OneWay}"
-                                 Style="{StaticResource ModernTextBoxStyle}"
-                                 IsReadOnly="True"
-                                 Margin="0,0,8,0" />
-                        <Button Grid.Column="1"
-                                Content="Open Folder"
-                                Command="{Binding OpenConfigFolderCommand}"
-                                Style="{StaticResource SecondaryButtonStyle}" />
-                    </Grid>
-                </StackPanel>
-            </Border>
-        </StackPanel>
+                <!-- Theme Preference -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Appearance Theme" Style="{StaticResource FormLabelStyle}" />
+                        <ComboBox ItemsSource="{Binding Source={StaticResource ThemeValues}}"
+                                  SelectedItem="{Binding Theme}"
+                                  Padding="8,7"
+                                  FontSize="13" />
+                        <TextBlock Text="Select Light, Dark, or automatically match your Windows system preference."
+                                   FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Hotkeys & General Options -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <CheckBox Content="Master AutoTyper functionality enabled"
+                                  IsChecked="{Binding AutoTyperMasterEnabled}"
+                                  FontSize="13"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Margin="0,0,0,8" />
+
+                        <CheckBox Content="Prompt for confirmation before deleting profiles"
+                                  IsChecked="{Binding ConfirmOnDelete}"
+                                  FontSize="13"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  Margin="0,0,0,8" />
+
+                        <Grid Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Global Stop Hotkey:" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBox Grid.Column="1" Text="{Binding GlobalStopHotkey, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
+                        </Grid>
+
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Default delay for new profiles (ms):" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBox Grid.Column="1" Text="{Binding DefaultDelayMs, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBoxStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Storage Location -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Configuration Storage" Style="{StaticResource FormLabelStyle}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding ConfigFolderPath, Mode=OneWay}"
+                                     Style="{StaticResource ModernTextBoxStyle}"
+                                     IsReadOnly="True"
+                                     Margin="0,0,8,0" />
+                            <Button Grid.Column="1"
+                                    Content="Open Folder"
+                                    Command="{Binding OpenConfigFolderCommand}"
+                                    Style="{StaticResource SecondaryButtonStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
 
         <!-- Footer -->
         <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ControlBorderBrush}" Padding="0,16,0,0">

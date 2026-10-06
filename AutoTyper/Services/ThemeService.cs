@@ -26,10 +26,10 @@ public class ThemeService : IThemeService
 
         var targetUri = useDark ? DarkThemeUri : LightThemeUri;
 
-        if (Application.Current == null)
+        if (System.Windows.Application.Current == null)
             return;
 
-        var mergedDicts = Application.Current.Resources.MergedDictionaries;
+        var mergedDicts = System.Windows.Application.Current.Resources.MergedDictionaries;
         var existingThemeDict = mergedDicts.FirstOrDefault(d =>
             d.Source != null && (d.Source.OriginalString.Contains("DarkTheme.xaml") || d.Source.OriginalString.Contains("LightTheme.xaml")));
 

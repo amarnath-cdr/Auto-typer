@@ -14,14 +14,21 @@ A modern Windows desktop auto-typing application.
 **AutoTyper** is an open-source Windows x64 desktop utility designed to manage and automate keystroke simulation, text insertion profiles, and hotkey configurations. Built using **C#**, **.NET 8**, **WPF**, and the **MVVM (Model-View-ViewModel)** architectural pattern, AutoTyper emphasizes clean separation of concerns, robust JSON persistence, layout-independent Unicode typing via `SendInput`, and global hotkey integration.
 
 > [!NOTE]
-> **Project Status: Phase 3 — Special Keys & Advanced Typing Completed**  
-> Token parser (`{ENTER}`, `{TAB}`, `{F1}`–`{F12}`, etc.), modifier combinations (`{CTRL+C}`, `{ALT+TAB}`, `{WIN+D}`, `{CTRL+SHIFT+S}`), brace escaping (`{{` and `}}`), start delays, repeat loops, and clipboard mode with automatic restoration are fully implemented and verified across 147 unit tests.
+> **Project Status: Phase 4 — Windows Integration & Desktop Polish Completed**  
+> System tray icon with context menu, Minimize to Tray, Close to Tray, Start with Windows, Windows event notifications, single-instance mutex protection, and persistent desktop preferences are fully implemented and verified across 163 unit tests.
 
 ---
 
 ## Features
 
-### Currently Implemented (Phases 1, 2 & 3)
+### Currently Implemented (Phases 1, 2, 3 & 4)
+- **System Tray & Desktop Integration**:
+  - Windows notification area tray icon with context menu (`Show AutoTyper`, `Start Selected Profile`, `Stop Typing`, `Exit`).
+  - **Minimize to Tray**: Keeps AutoTyper running unobtrusively in the tray when minimized.
+  - **Close to Tray**: Keeps AutoTyper active when clicking the window close button (`X`).
+  - **Start with Windows**: Per-user `Run` registry integration for auto-launch on login without requiring administrator privileges.
+  - **Windows Notifications**: Balloon tips for typing start, completion, cancellation, and error states.
+  - **Single-Instance Protection**: Named Mutex and EventWaitHandle prevent duplicate instances and bring the active window to the foreground on secondary launches.
 - **Special Key & Combination Parser**:
   - Special keys: `{ENTER}`, `{TAB}`, `{BACKSPACE}`, `{ESC}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{DELETE}`, `{INSERT}`, `{PAGEUP}`, `{PAGEDOWN}`, `{CAPSLOCK}`, `{NUMLOCK}`, `{SCROLLLOCK}`, `{PRINTSCREEN}`, `{PAUSE}`.
   - Function keys: `{F1}` through `{F12}`.
@@ -59,7 +66,7 @@ A modern Windows desktop auto-typing application.
   - Dynamic runtime switching between **Light**, **Dark**, and **System** themes.
   - Automatic Windows system dark mode detection via Windows personalization settings.
 - **Quality & Verification**:
-  - 147 automated xUnit tests validating parsing, combinations, delays, jitter, cancellation, clipboard mode, hotkeys, serialization, storage, search, and validation.
+  - 163 automated xUnit tests validating tray integration, single instance mutex, startup registry, notifications, parsing, combinations, delays, jitter, cancellation, clipboard mode, hotkeys, serialization, storage, search, and validation.
   - GitHub Actions CI pipeline executing on every push and pull request.
 
 ---
@@ -175,6 +182,18 @@ Auto-typer/
 │   │   │   ├── IHotkeyService.cs          # Hotkey registration interface
 │   │   │   ├── HotkeyModel.cs             # Hotkey parser & representation
 │   │   │   └── WindowsHotkeyService.cs    # Win32 RegisterHotKey & HwndSource hook
+│   │   ├── Tray/
+│   │   │   ├── ITrayIconService.cs        # Tray icon abstraction
+│   │   │   └── WindowsTrayIconService.cs  # Windows NotifyIcon implementation
+│   │   ├── Startup/
+│   │   │   ├── IStartupService.cs         # Windows startup interface
+│   │   │   └── WindowsStartupService.cs   # HKCU Run registry implementation
+│   │   ├── Notifications/
+│   │   │   ├── INotificationService.cs    # Notification service interface
+│   │   │   └── WindowsNotificationService.cs # Tray balloon tip dispatcher
+│   │   ├── Lifecycle/
+│   │   │   ├── ISingleInstanceService.cs  # Single-instance abstraction
+│   │   │   └── WindowsSingleInstanceService.cs # Named Mutex & EventWaitHandle
 │   │   ├── IProfileStorageService.cs / ProfileStorageService.cs
 │   │   ├── ISettingsStorageService.cs / SettingsStorageService.cs
 │   │   └── IThemeService.cs / ThemeService.cs
@@ -189,8 +208,15 @@ Auto-typer/
 ├── AutoTyper.Tests/
 │   ├── AutoTyper.Tests.csproj      # xUnit test project (.NET 8)
 │   ├── TypingEngineTests.cs        # Keystroke simulation & timing tests
+│   ├── TypingParserTests.cs        # Special key & modifier token parser tests
 │   ├── HotkeyServiceTests.cs       # Hotkey parsing & conflict tests
 │   ├── MainViewModelPhase2Tests.cs # ViewModel typing integration tests
+│   ├── MainViewModelPhase3Tests.cs # Advanced typing & parser integration tests
+│   ├── MainViewModelPhase4Tests.cs # Desktop & tray integration tests
+│   ├── TrayAndLifecycleTests.cs    # Tray state & single instance tests
+│   ├── StartupServiceTests.cs      # Windows startup registry tests
+│   ├── NotificationServiceTests.cs # Balloon notification tests
+│   ├── AppSettingsTests.cs         # App settings & fallback recovery tests
 │   ├── SerializationTests.cs       # JSON roundtrip & formatting tests
 │   ├── StorageServiceTests.cs      # File persistence & recovery tests
 │   ├── SearchTests.cs              # Search filtering tests
@@ -229,15 +255,22 @@ The development of AutoTyper is structured into sequential phases:
   - Global hotkeys via Win32 `RegisterHotKey` / `HwndSource`
   - Global Stop Hotkey (`Escape`)
   - 72 automated unit tests covering all Phase 1 & 2 behaviors
-- [ ] **Phase 3 — Syntax & Key Parser** *(Planned)*
-  - Special key token parser (`{ENTER}`, `{TAB}`, `{ESC}`, etc.)
-  - Capitalization transform processor
-  - Dynamic timestamp & variable insertion
-- [ ] **Phase 4 — System Integration & Automation** *(Planned)*
+- [x] **Phase 3 — Syntax & Key Parser**
+  - Special key token parser (`{ENTER}`, `{TAB}`, `{ESC}`, navigation & function keys)
+  - Modifier combinations (`{CTRL+C}`, `{CTRL+V}`, `{CTRL+SHIFT+S}`, etc.)
+  - Literal brace escaping (`{{` / `}}`)
+  - Clipboard typing mode with automatic clipboard restore
+  - Start Delay (0–60s) & Repeat loop execution (1–1,000)
+  - Capitalization transform processor (`Original`, `Uppercase`, `Lowercase`, `SentenceCase`)
+  - 147 automated unit tests
+- [x] **Phase 4 — System Integration & Automation**
   - Windows system tray minimization & notification icon
-  - Global emergency stop hotkey (kill-switch)
-  - Profile execution repeat engine with loop limits
-  - Launch on Windows startup option
+  - Tray context menu with `Show AutoTyper`, `Start Selected Profile`, `Stop Typing`, `Exit`
+  - Minimize to Tray & Close to Tray window lifecycles
+  - Launch on Windows startup option (per-user registry `Run` key)
+  - Windows event balloon notifications for typing transitions
+  - Single-instance application protection via named Mutex & activation handle
+  - 163 automated unit tests
 - [ ] **Phase 5 — Distribution & Packaging** *(Planned)*
   - Windows x64 single-file installer & portable release
   - Code signing & GitHub Releases automation

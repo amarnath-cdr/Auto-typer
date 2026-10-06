@@ -92,9 +92,9 @@ public class WindowsClipboardService : IClipboardService
             return action();
         }
 
-        if (Application.Current?.Dispatcher != null && !Application.Current.Dispatcher.HasShutdownStarted)
+        if (System.Windows.Application.Current?.Dispatcher != null && !System.Windows.Application.Current.Dispatcher.HasShutdownStarted)
         {
-            return Application.Current.Dispatcher.Invoke(action);
+            return System.Windows.Application.Current.Dispatcher.Invoke(action);
         }
 
         T result = default!;

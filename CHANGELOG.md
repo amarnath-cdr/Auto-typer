@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-06
+
+### Added
+- **System Tray Integration**:
+  - `ITrayIconService` and `WindowsTrayIconService` using Windows `NotifyIcon`.
+  - Tray context menu with `Show AutoTyper`, `Start Selected Profile`, `Stop Typing`, and `Exit`.
+  - Double-click to restore and focus main window.
+- **Desktop Window Lifecycle Management**:
+  - `MinimizeToTray` setting: minimizes to the notification area instead of taskbar.
+  - `CloseToTray` setting: hides window on close (`X`) while keeping the application running in background.
+  - HWND-safe hotkey registration tied to `SourceInitialized` with complete unregistration on shutdown.
+- **Windows Startup**:
+  - `IStartupService` and `WindowsStartupService` managing per-user `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` registry entry.
+  - Seamless toggle without requiring administrator privileges.
+- **Windows Notifications**:
+  - `INotificationService` and `WindowsNotificationService` for state transitions (`Typing started`, `Typing completed`, `Typing stopped`, `Typing error`).
+  - Configurable `ShowNotifications` toggle to respect user notification preferences without spamming.
+- **Single-Instance Application Protection**:
+  - `ISingleInstanceService` and `WindowsSingleInstanceService` using per-user named `Mutex` and `EventWaitHandle`.
+  - Automatically activates and brings the running instance to the foreground when a secondary launch is attempted.
+- **Application Settings & UI**:
+  - Expanded `AppSettings` model with atomic persistence and corrupted file recovery.
+  - Redesigned `SettingsDialog` with desktop integration controls and descriptive labels.
+- **Testing**:
+  - 16 new unit tests (163 total) covering settings serialization, corrupted file recovery, startup service, notifications, single instance mutex, tray menu state transitions, and lifecycle events.
+
 ## [0.3.0] - 2026-10-06
 
 ### Added
