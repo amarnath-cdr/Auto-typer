@@ -88,7 +88,7 @@ public partial class App : System.Windows.Application
             Dispatcher.Invoke(() => RestoreMainWindow(mainWindow));
         });
 
-        // 6. HWND initialization for Global Hotkeys
+        // 6. HWND initialization for Global Hotkeys and Window Messages
         mainWindow.SourceInitialized += (s, ev) =>
         {
             var handle = new WindowInteropHelper(mainWindow).Handle;
@@ -96,21 +96,29 @@ public partial class App : System.Windows.Application
             {
                 _hotkeyService.Initialize(handle);
                 _mainViewModel.RegisterGlobalHotkeys();
+
+                var source = HwndSource.FromHwnd(handle);
+                source?.AddHook((IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled) =>
+                {
+                    const int WM_SYSCOMMAND = 0x0112;
+                    const int SC_MINIMIZE = 0xF020;
+
+                    if (msg == WM_SYSCOMMAND && (wParam.ToInt32() & 0xFFF0) == SC_MINIMIZE)
+                    {
+                        var settings = settingsStorage.LoadSettings();
+                        if (settings.MinimizeToTray)
+                        {
+                            mainWindow.Hide();
+                            handled = true;
+                        }
+                    }
+
+                    return IntPtr.Zero;
+                });
             }
         };
 
-        // 7. Window minimize to tray handler
-        mainWindow.StateChanged += (s, ev) =>
-        {
-            var settings = settingsStorage.LoadSettings();
-            if (mainWindow.WindowState == WindowState.Minimized && settings.MinimizeToTray)
-            {
-                mainWindow.ShowInTaskbar = false;
-                mainWindow.Hide();
-            }
-        };
-
-        // 8. Window close to tray handler
+        // 7. Window close to tray handler
         mainWindow.Closing += (s, ev) =>
         {
             if (!_isExplicitExit)
@@ -119,7 +127,6 @@ public partial class App : System.Windows.Application
                 if (settings.CloseToTray)
                 {
                     ev.Cancel = true;
-                    mainWindow.ShowInTaskbar = false;
                     mainWindow.Hide();
                 }
             }
@@ -131,7 +138,7 @@ public partial class App : System.Windows.Application
             _trayIconService?.Dispose();
         };
 
-        // 9. Dialog Callbacks
+        // 8. Dialog Callbacks
         _mainViewModel.ShowProfileEditorDialog = (existingProfile) =>
         {
             var editorVm = new ProfileEditorViewModel(existingProfile);
@@ -177,8 +184,11 @@ public partial class App : System.Windows.Application
     private static void RestoreMainWindow(MainWindow window)
     {
         window.Show();
-        window.WindowState = WindowState.Normal;
-        window.ShowInTaskbar = true;
+        if (window.WindowState == WindowState.Minimized)
+        {
+            window.WindowState = WindowState.Normal;
+        }
+
         window.Activate();
         window.Focus();
     }
