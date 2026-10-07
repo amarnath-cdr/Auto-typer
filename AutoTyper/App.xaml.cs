@@ -105,6 +105,7 @@ public partial class App : System.Windows.Application
             var settings = settingsStorage.LoadSettings();
             if (mainWindow.WindowState == WindowState.Minimized && settings.MinimizeToTray)
             {
+                mainWindow.ShowInTaskbar = false;
                 mainWindow.Hide();
             }
         };
@@ -118,6 +119,7 @@ public partial class App : System.Windows.Application
                 if (settings.CloseToTray)
                 {
                     ev.Cancel = true;
+                    mainWindow.ShowInTaskbar = false;
                     mainWindow.Hide();
                 }
             }
@@ -174,16 +176,9 @@ public partial class App : System.Windows.Application
 
     private static void RestoreMainWindow(MainWindow window)
     {
-        if (!window.IsVisible)
-        {
-            window.Show();
-        }
-
-        if (window.WindowState == WindowState.Minimized)
-        {
-            window.WindowState = WindowState.Normal;
-        }
-
+        window.Show();
+        window.WindowState = WindowState.Normal;
+        window.ShowInTaskbar = true;
         window.Activate();
         window.Focus();
     }
