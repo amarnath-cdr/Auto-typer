@@ -176,6 +176,7 @@ public class TypingParserTests
     [InlineData("{wait:1000}", 1000)]
     [InlineData("{WAIT:0}", 0)]
     [InlineData("{WaIt:2000}", 2000)]
+    [InlineData("{WAIT:60000}", 60000)]
     public void Parse_WaitToken_ParsedCorrectly(string input, int expectedMs)
     {
         var tokens = _parser.Parse(input);
@@ -183,14 +184,59 @@ public class TypingParserTests
         Assert.Single(tokens);
         Assert.Equal(TokenType.Wait, tokens[0].Type);
         Assert.Equal(expectedMs, tokens[0].WaitMilliseconds);
+        Assert.Equal(expectedMs, tokens[0].MinWaitMilliseconds);
+        Assert.Equal(expectedMs, tokens[0].MaxWaitMilliseconds);
+        Assert.False(tokens[0].IsWaitRange);
     }
 
     [Theory]
-    [InlineData("{WAIT:-100}")]    // Negative value
-    [InlineData("{WAIT:500.5}")]   // Decimal
-    [InlineData("{WAIT:abc}")]     // Non-numeric
-    [InlineData("{WAIT:}")]        // Empty value
-    [InlineData("{WAIT}")]         // Missing colon
+    [InlineData("{WAIT:20-400}", 20, 400)]
+    [InlineData("{wait:100-1000}", 100, 1000)]
+    [InlineData("{WAIT:0-60000}", 0, 60000)]
+    [InlineData("{WAIT:400-20}", 20, 400)]       // Reversed range normalized
+    [InlineData("{WAIT:1000-100}", 100, 1000)]   // Reversed range normalized
+    public void Parse_WaitRangeToken_ParsedAndNormalized(string input, int expectedMin, int expectedMax)
+    {
+        var tokens = _parser.Parse(input);
+
+        Assert.Single(tokens);
+        Assert.Equal(TokenType.Wait, tokens[0].Type);
+        Assert.Equal(expectedMin, tokens[0].MinWaitMilliseconds);
+        Assert.Equal(expectedMax, tokens[0].MaxWaitMilliseconds);
+        Assert.True(tokens[0].IsWaitRange);
+    }
+
+    [Theory]
+    [InlineData("{WAIT:20-20}", 20)]
+    [InlineData("{WAIT:200-200}", 200)]
+    [InlineData("{WAIT:60000-60000}", 60000)]
+    public void Parse_WaitEqualRange_ParsedCorrectly(string input, int expectedMs)
+    {
+        var tokens = _parser.Parse(input);
+
+        Assert.Single(tokens);
+        Assert.Equal(TokenType.Wait, tokens[0].Type);
+        Assert.Equal(expectedMs, tokens[0].MinWaitMilliseconds);
+        Assert.Equal(expectedMs, tokens[0].MaxWaitMilliseconds);
+        Assert.False(tokens[0].IsWaitRange);
+    }
+
+    [Theory]
+    [InlineData("{WAIT:-100}")]          // Negative value
+    [InlineData("{WAIT:-20}")]           // Negative value
+    [InlineData("{WAIT:500.5}")]         // Decimal
+    [InlineData("{WAIT:abc}")]           // Non-numeric
+    [InlineData("{WAIT:}")]              // Empty value
+    [InlineData("{WAIT}")]               // Missing colon
+    [InlineData("{WAIT:20-}")]           // Missing max
+    [InlineData("{WAIT:-400}")]          // Missing min / negative
+    [InlineData("{WAIT:-20-400}")]       // Negative min in range
+    [InlineData("{WAIT:abc-400}")]       // Non-numeric min
+    [InlineData("{WAIT:20-abc}")]        // Non-numeric max
+    [InlineData("{WAIT:20-400-500}")]    // Multiple dashes
+    [InlineData("{WAIT:20-60001}")]      // Upper bound exceeds 60000
+    [InlineData("{WAIT:60001-60000}")]   // Lower bound exceeds 60000
+    [InlineData("{WAIT:999999-1000}")]   // Out of range
     public void Parse_InvalidWaitSyntax_TreatedAsLiteralText(string input)
     {
         var tokens = _parser.Parse(input);
@@ -217,7 +263,7 @@ public class TypingParserTests
     [Fact]
     public void Parse_WaitMixedWithText_ParsesCorrectly()
     {
-        var tokens = _parser.Parse("A{WAIT:100}B{WAIT:200}C");
+        var tokens = _parser.Parse("A{WAIT:100}B{WAIT:20-400}C");
 
         Assert.Equal(5, tokens.Count);
         Assert.Equal(TokenType.Text, tokens[0].Type);
@@ -225,12 +271,15 @@ public class TypingParserTests
 
         Assert.Equal(TokenType.Wait, tokens[1].Type);
         Assert.Equal(100, tokens[1].WaitMilliseconds);
+        Assert.False(tokens[1].IsWaitRange);
 
         Assert.Equal(TokenType.Text, tokens[2].Type);
         Assert.Equal("B", tokens[2].Text);
 
         Assert.Equal(TokenType.Wait, tokens[3].Type);
-        Assert.Equal(200, tokens[3].WaitMilliseconds);
+        Assert.Equal(20, tokens[3].MinWaitMilliseconds);
+        Assert.Equal(400, tokens[3].MaxWaitMilliseconds);
+        Assert.True(tokens[3].IsWaitRange);
 
         Assert.Equal(TokenType.Text, tokens[4].Type);
         Assert.Equal("C", tokens[4].Text);

@@ -152,15 +152,41 @@ public class TypingParser : ITypingParser
         if (string.IsNullOrWhiteSpace(content))
             return false;
 
-        // 1. Check for explicit WAIT token (e.g. "WAIT:500")
+        // 1. Check for explicit WAIT token (e.g. "WAIT:500" or "WAIT:20-400")
         if (content.StartsWith("WAIT:", StringComparison.OrdinalIgnoreCase))
         {
             string waitValueStr = content.Substring(5).Trim();
+
+            // Range syntax: WAIT:min-max
+            int dashIndex = waitValueStr.IndexOf('-');
+            if (dashIndex != -1)
+            {
+                // Must have exactly one dash and not start or end with dash
+                if (dashIndex > 0 && dashIndex < waitValueStr.Length - 1 && waitValueStr.IndexOf('-', dashIndex + 1) == -1)
+                {
+                    string minPart = waitValueStr.Substring(0, dashIndex).Trim();
+                    string maxPart = waitValueStr.Substring(dashIndex + 1).Trim();
+
+                    if (int.TryParse(minPart, out int val1) && int.TryParse(maxPart, out int val2) &&
+                        val1 >= 0 && val1 <= 60000 && val2 >= 0 && val2 <= 60000)
+                    {
+                        int minMs = Math.Min(val1, val2);
+                        int maxMs = Math.Max(val1, val2);
+                        token = TypingToken.CreateWait(minMs, maxMs, minMs == maxMs ? $"WAIT:{minMs}" : $"WAIT:{minMs}-{maxMs}");
+                        return true;
+                    }
+                }
+
+                return false; // Malformed range or out-of-range treated as literal text
+            }
+
+            // Fixed syntax: WAIT:ms
             if (int.TryParse(waitValueStr, out int waitMs) && waitMs >= 0 && waitMs <= 60000)
             {
                 token = TypingToken.CreateWait(waitMs, $"WAIT:{waitMs}");
                 return true;
             }
+
             return false; // Invalid wait syntax or out-of-range treated as literal text
         }
 

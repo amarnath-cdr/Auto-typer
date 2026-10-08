@@ -279,9 +279,10 @@ public class TypingEngine : ITypingEngine
                         break;
 
                     case TokenType.Wait:
-                        if (token.WaitMilliseconds > 0)
+                        int waitDuration = CalculateWaitDelay(token);
+                        if (waitDuration > 0)
                         {
-                            await _delayProvider.DelayAsync(token.WaitMilliseconds, cancellationToken);
+                            await _delayProvider.DelayAsync(waitDuration, cancellationToken);
                         }
                         currentStep++;
                         ProgressChanged?.Invoke(this, new TypingProgress
@@ -293,6 +294,18 @@ public class TypingEngine : ITypingEngine
                 }
             }
         }
+    }
+
+    private int CalculateWaitDelay(TypingToken token)
+    {
+        if (token.IsWaitRange)
+        {
+            int min = Math.Min(token.MinWaitMilliseconds, token.MaxWaitMilliseconds);
+            int max = Math.Max(token.MinWaitMilliseconds, token.MaxWaitMilliseconds);
+            return _random.Next(min, max + 1);
+        }
+
+        return token.WaitMilliseconds;
     }
 
     private int CalculateDelay(AutoTypeProfile profile)

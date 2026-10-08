@@ -37,8 +37,25 @@ public class TypingToken
     /// <summary>List of modifier virtual key codes (e.g. VK_CONTROL, VK_SHIFT, VK_MENU, VK_LWIN).</summary>
     public IReadOnlyList<ushort> Modifiers { get; init; } = Array.Empty<ushort>();
 
-    /// <summary>The duration to wait in milliseconds when <see cref="Type"/> is <see cref="TokenType.Wait"/>.</summary>
-    public int WaitMilliseconds { get; init; }
+    /// <summary>The minimum duration to wait in milliseconds when <see cref="Type"/> is <see cref="TokenType.Wait"/>.</summary>
+    public int MinWaitMilliseconds { get; init; }
+
+    /// <summary>The maximum duration to wait in milliseconds when <see cref="Type"/> is <see cref="TokenType.Wait"/>.</summary>
+    public int MaxWaitMilliseconds { get; init; }
+
+    /// <summary>The duration to wait in milliseconds when <see cref="Type"/> is <see cref="TokenType.Wait"/>. For range waits, returns MinWaitMilliseconds.</summary>
+    public int WaitMilliseconds
+    {
+        get => MinWaitMilliseconds;
+        init
+        {
+            MinWaitMilliseconds = value;
+            MaxWaitMilliseconds = value;
+        }
+    }
+
+    /// <summary>True if this WAIT token defines a variable range (MinWaitMilliseconds != MaxWaitMilliseconds).</summary>
+    public bool IsWaitRange => MinWaitMilliseconds != MaxWaitMilliseconds;
 
     /// <summary>Human-readable token description or tag name.</summary>
     public string Name { get; init; } = string.Empty;
@@ -68,7 +85,16 @@ public class TypingToken
     public static TypingToken CreateWait(int milliseconds, string name) => new()
     {
         Type = TokenType.Wait,
-        WaitMilliseconds = milliseconds,
+        MinWaitMilliseconds = milliseconds,
+        MaxWaitMilliseconds = milliseconds,
+        Name = name
+    };
+
+    public static TypingToken CreateWait(int minMilliseconds, int maxMilliseconds, string name) => new()
+    {
+        Type = TokenType.Wait,
+        MinWaitMilliseconds = minMilliseconds,
+        MaxWaitMilliseconds = maxMilliseconds,
         Name = name
     };
 
@@ -77,7 +103,7 @@ public class TypingToken
         TokenType.Text => $"Text(\"{Text}\")",
         TokenType.SpecialKey => $"SpecialKey({Name})",
         TokenType.KeyCombination => $"KeyCombination({Name})",
-        TokenType.Wait => $"Wait({WaitMilliseconds}ms)",
+        TokenType.Wait => IsWaitRange ? $"Wait({MinWaitMilliseconds}-{MaxWaitMilliseconds}ms)" : $"Wait({WaitMilliseconds}ms)",
         _ => base.ToString() ?? string.Empty
     };
 }
