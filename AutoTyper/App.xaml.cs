@@ -106,7 +106,7 @@ public partial class App : System.Windows.Application
                     if (msg == WM_SYSCOMMAND && (wParam.ToInt32() & 0xFFF0) == SC_MINIMIZE)
                     {
                         var settings = settingsStorage.LoadSettings();
-                        if (settings.MinimizeToTray)
+                        if (settings.MinimizeToTray && lParam != IntPtr.Zero)
                         {
                             mainWindow.Hide();
                             handled = true;

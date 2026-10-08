@@ -14,7 +14,7 @@ public class AppSettings
 
     public string GlobalStopHotkey { get; set; } = "Escape";
 
-    public bool MinimizeToTray { get; set; } = true;
+    public bool MinimizeToTray { get; set; } = false;
 
     public bool CloseToTray { get; set; } = true;
 

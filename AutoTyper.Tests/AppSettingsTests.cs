@@ -19,7 +19,7 @@ public class AppSettingsTests
         Assert.True(settings.ConfirmOnDelete);
         Assert.Equal(20, settings.DefaultDelayMs);
         Assert.Equal("Escape", settings.GlobalStopHotkey);
-        Assert.True(settings.MinimizeToTray);
+        Assert.False(settings.MinimizeToTray);
         Assert.True(settings.CloseToTray);
         Assert.False(settings.StartWithWindows);
         Assert.True(settings.ShowNotifications);
@@ -125,7 +125,7 @@ public class AppSettingsTests
 
         Assert.NotNull(settings);
         Assert.Equal(AppTheme.Light, settings.Theme);
-        Assert.True(settings.MinimizeToTray);     // default
+        Assert.False(settings.MinimizeToTray);     // default
         Assert.True(settings.CloseToTray);        // default
         Assert.False(settings.StartWithWindows);  // default
         Assert.True(settings.ShowNotifications);  // default
@@ -143,7 +143,7 @@ public class AppSettingsTests
             var settings = service.LoadSettings();
 
             Assert.NotNull(settings);
-            Assert.True(settings.MinimizeToTray);
+            Assert.False(settings.MinimizeToTray);
             Assert.True(settings.CloseToTray);
         }
         finally
